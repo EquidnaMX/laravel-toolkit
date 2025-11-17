@@ -1,11 +1,11 @@
-<?php
+﻿<?php
 
 /**
  * Exception for HTTP 422 Unprocessable Entity responses (422 Unprocessable Entity).
  *
  * @author Gabriel Ruelas
  * @license MIT
- * @version 0.6.5
+ * @version 1.0.0
  */
 
 namespace Equidna\Toolkit\Exceptions;
@@ -56,3 +56,4 @@ class UnprocessableEntityException extends Exception
         return ResponseHelper::unprocessableEntity(message: $this->message, errors: $this->errors);
     }
 }
+

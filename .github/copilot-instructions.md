@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**equidna-toolkit** is a Laravel PHP package (v0.6.5) providing utilities for multi-context application development. It intelligently handles different request types (web, API, hooks, IoT) and provides unified response patterns across contexts.
+**equidna-toolkit** is a Laravel PHP package (v1.0.0) providing utilities for multi-context application development. It intelligently handles different request types (web, API, hooks, IoT) and provides unified response patterns across contexts.
 
 **Core Architecture:**
 
@@ -59,7 +59,7 @@ Custom exceptions auto-register in service container and provide context-aware r
 
 ```bash
 composer require equidna/toolkit
-# Auto-discovery registers EquidnaServiceProvider
+# Auto-discovery registers EquidnaLaravelToolkitServiceProvider
 php artisan vendor:publish --tag=equidna:config
 ```
 

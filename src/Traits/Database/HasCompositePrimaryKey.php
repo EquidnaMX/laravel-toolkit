@@ -1,11 +1,11 @@
-<?php
+﻿<?php
 
 /**
  * HasCompositePrimaryKey Trait
  *
  * @author Gabriel Ruelas
  * @license MIT
- * @version 0.6.5
+ * @version 1.0.0
  *
  * Enables Eloquent models to support composite primary keys.
  */
@@ -55,3 +55,4 @@ trait HasCompositePrimaryKey
         return $this->getAttribute($keyName);
     }
 }
+

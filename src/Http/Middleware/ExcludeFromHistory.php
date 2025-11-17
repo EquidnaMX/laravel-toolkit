@@ -1,9 +1,9 @@
-<?php
+﻿<?php
 
 /**
  * @author Gabriel Ruelas
  * @license MIT
- * @version 0.6.5
+ * @version 1.0.0
  *
  */
 

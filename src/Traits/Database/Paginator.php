@@ -1,9 +1,9 @@
-<?php
+﻿<?php
 
 /**
  * @author Erick Escobar
  * @license MIT
- * @version 0.6.5
+ * @version 1.0.0
  *
  */
 
@@ -77,3 +77,4 @@ trait Paginator
         return $paginator;
     }
 }
+

@@ -1,11 +1,11 @@
-<?php
+﻿<?php
 
 /**
  * Exception for HTTP 409 Conflict responses (409 Conflict).
  *
  * @author Gabriel Ruelas
  * @license MIT
- * @version 0.6.5
+ * @version 1.0.0
  */
 
 namespace Equidna\Toolkit\Exceptions;
@@ -59,3 +59,4 @@ class ConflictException extends Exception
         );
     }
 }
+

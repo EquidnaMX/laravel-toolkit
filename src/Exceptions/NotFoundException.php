@@ -1,11 +1,11 @@
-<?php
+﻿<?php
 
 /**
  * Exception for HTTP 404 Not Found responses (404 Not Found).
  *
  * @author Gabriel Ruelas
  * @license MIT
- * @version 0.6.5
+ * @version 1.0.0
  */
 
 namespace Equidna\Toolkit\Exceptions;
@@ -59,3 +59,4 @@ class NotFoundException extends Exception
         );
     }
 }
+

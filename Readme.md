@@ -1,4 +1,4 @@
-# Equidna Toolkit v0.6.5
+# Equidna Toolkit v1.0.0
 
 > **A modern Laravel package for multi-context, modular application development.**
 
@@ -33,7 +33,7 @@ If you use Laravel's package auto-discovery, the service provider is registered 
 
 ```php
 'providers' => [
-    Equidna\Toolkit\Providers\EquidnaServiceProvider::class,
+    Equidna\Toolkit\Providers\EquidnaLaravelToolkitServiceProvider::class,
 ]
 ```
 
@@ -204,7 +204,7 @@ Available exceptions:
 throw new BadRequestException('Invalid input', $previousException, ['field' => 'error']);
 ```
 
-## Form Request Validation (New in v0.6.5)
+## Form Request Validation
 
 ### EquidnaFormRequest
 
@@ -230,6 +230,7 @@ class StoreUserRequest extends EquidnaFormRequest
 On validation failure, a `BadRequestException` is thrown with a message and errors array, which is handled by the toolkit to provide a JSON response for API requests or a redirect with flash data for web requests, following the package's multi-context philosophy.
 
 ---
+
 ## Configuration
 
 All config is referenced relative to the provider directory. Example:
@@ -294,7 +295,7 @@ If you use Laravel's package auto-discovery, the service provider is registered 
 
 ```php
 'providers' => [
-    Equidna\Toolkit\Providers\EquidnaServiceProvider::class,
+    Equidna\Toolkit\Providers\EquidnaLaravelToolkitServiceProvider::class,
 ]
 ```
 
@@ -634,7 +635,7 @@ return [
 
 ## Service Provider
 
-### EquidnaServiceProvider
+### EquidnaLaravelToolkitServiceProvider
 
 **Namespace:** `Equidna\Toolkit\Providers`
 
@@ -684,7 +685,7 @@ Example:
 - Add the service provider to `config/app.php`:
   ```php
   'providers' => [
-      Equidna\Toolkit\Providers\EquidnaServiceProvider::class,
+            Equidna\Toolkit\Providers\EquidnaLaravelToolkitServiceProvider::class,
   ]
   ```
 - Publish config:

@@ -1,11 +1,11 @@
-<?php
+﻿<?php
 
 /**
  * PaginatorHelper
  *
  * @author Gabriel Ruelas
  * @license MIT
- * @version 0.6.5
+ * @version 1.0.0
  *
  * Provides static utility methods for pagination.
  * This helper class is designed to assist with paginating data
@@ -85,3 +85,4 @@ class PaginatorHelper
         $paginator->setPath(url()->current());
     }
 }
+

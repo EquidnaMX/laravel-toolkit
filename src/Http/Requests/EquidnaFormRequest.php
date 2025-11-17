@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace Equidna\Toolkit\Http\Requests;
 
