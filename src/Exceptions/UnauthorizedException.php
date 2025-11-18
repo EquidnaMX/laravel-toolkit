@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 /**
  * Exception for HTTP 401 Unauthorized responses (401 Unauthorized).

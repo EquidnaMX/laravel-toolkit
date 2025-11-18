@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 /**
  * Exception for HTTP 422 Unprocessable Entity responses (422 Unprocessable Entity).
