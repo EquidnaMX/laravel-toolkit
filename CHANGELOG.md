@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.2] - 2025-11-18
+
+### Fixed (1.0.2)
+
+- Ensured all repository files use UTF-8 encoding without BOM (including recent changes).
+- Bumped package version to `1.0.2` in `composer.json` for release.
+- No functional changes.
+
 ## [1.0.1] - 2025-11-17
 
 ### Fixed (1.0.1)

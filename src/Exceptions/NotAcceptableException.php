@@ -59,4 +59,3 @@ class NotAcceptableException extends Exception
         );
     }
 }
-

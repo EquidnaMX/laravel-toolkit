@@ -85,4 +85,3 @@ class PaginatorHelper
         $paginator->setPath(url()->current());
     }
 }
-

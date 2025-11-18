@@ -56,4 +56,3 @@ class UnprocessableEntityException extends Exception
         return ResponseHelper::unprocessableEntity(message: $this->message, errors: $this->errors);
     }
 }
-

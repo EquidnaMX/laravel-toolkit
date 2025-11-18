@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 /**
  * Exception for HTTP 409 Conflict responses (409 Conflict).
@@ -59,4 +59,3 @@ class ConflictException extends Exception
         );
     }
 }
-

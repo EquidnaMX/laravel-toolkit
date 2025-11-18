@@ -5,4 +5,3 @@ return [
         'page_items' => 15,
     ],
 ];
-

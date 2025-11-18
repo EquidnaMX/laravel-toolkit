@@ -59,4 +59,3 @@ class ForbiddenException extends Exception
         );
     }
 }
-

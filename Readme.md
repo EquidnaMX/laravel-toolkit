@@ -1,4 +1,4 @@
-# Equidna Toolkit v1.0.0
+# Equidna Toolkit v1.0.2
 
 > **A modern Laravel package for multi-context, modular application development.**
 

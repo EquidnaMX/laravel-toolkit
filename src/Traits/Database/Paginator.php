@@ -77,4 +77,3 @@ trait Paginator
         return $paginator;
     }
 }
-

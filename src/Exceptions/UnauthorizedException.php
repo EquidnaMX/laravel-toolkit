@@ -59,4 +59,3 @@ class UnauthorizedException extends Exception
         );
     }
 }
-

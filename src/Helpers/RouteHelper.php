@@ -156,4 +156,3 @@ class RouteHelper
         return str_contains(self::getRouteName() ?? '', $name);
     }
 }
-

@@ -31,4 +31,3 @@ class ForceApiResponse
         return $next($request);
     }
 }
-

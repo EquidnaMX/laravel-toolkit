@@ -30,4 +30,3 @@ class ForceJsonResponse
         return $next($request);
     }
 }
-
