@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 /**
  * Exception for HTTP 406 Not Acceptable responses (406 Not Acceptable).
