@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 /**
  * Exception for HTTP 429 Too Many Requests responses (429 Too Many Requests).
