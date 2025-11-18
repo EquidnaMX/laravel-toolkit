@@ -1,6 +1,6 @@
 {
   "name": "equidna/laravel-toolkit",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "library",
   "license": "MIT",
   "authors": [
@@ -16,7 +16,7 @@
     "laravel/helpers": "^1.7"
   },
   "require-dev": {
-    "squizlabs/php_codesniffer": "^4.0"
+    "squizlabs/php_codesniffer": "*"
   },
   "autoload": {
     "psr-4": {

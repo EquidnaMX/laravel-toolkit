@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 /**
  * Registers Equidna Toolkit bindings and publishable resources for Laravel hosts.
@@ -103,4 +103,3 @@ class EquidnaLaravelToolkitServiceProvider extends ServiceProvider
         );
     }
 }
-

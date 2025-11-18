@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.1] - 2025-11-17
+
+### Fixed (1.0.1)
+
+- Bumped package version to `1.0.1` in `composer.json`.
+- Removed UTF-8 BOMs and normalized line endings to LF across the repository (non-vendor files).
+- No functional changes.
+
 ## [1.0.0] - 2025-11-17
 
 ### Highlights (1.0.0)
