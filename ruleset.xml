@@ -1,14 +1,21 @@
 <?xml version="1.0"?>
-<ruleset name="YourStandard">
-    <description>Foo is the best bar on baz</description>
+<ruleset name="EquidnaLaravelToolkit">
+    <description>Equidna Laravel Toolkit coding standard. Enforces PSR-12, reasonable line length, and whitespace/naming conventions.</description>
+    <author>Gabriel Ruelas &lt;gruelasjr@gmail.com&gt;</author>
 
-<!-- Include the whole PHPCS standard -->
+    <!-- Include PSR-12 standard -->
     <rule ref="PSR12"/>
 
+    <!-- Line length: 120 chars, allow long comments/docblocks -->
     <rule ref="Generic.Files.LineLength">
         <properties>
-            <property name="lineLimit" value="250"/>
+            <property name="lineLimit" value="120"/>
             <property name="absoluteLineLimit" value="0"/>
+            <property name="ignoreComments" value="true"/>
         </properties>
     </rule>
+
+    <!-- Exclude vendor and test folders -->
+    <exclude-pattern>vendor/*</exclude-pattern>
+    <exclude-pattern>tests/*</exclude-pattern>
 </ruleset>

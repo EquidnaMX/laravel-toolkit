@@ -1,0 +1,36 @@
+parameters:
+    level: 5
+    paths:
+        - src
+    treatPhpDocTypesAsCertain: false
+    reportUnmatchedIgnoredErrors: false
+
+    # Bootstrap files to load Laravel and application dependencies
+    bootstrapFiles:
+        - vendor/autoload.php
+
+    # Scan vendor directory for better type inference
+    scanDirectories:
+        - vendor
+
+    # Universal object crates - helps with magic methods
+    universalObjectCratesClasses:
+        - Illuminate\Database\Eloquent\Model
+        - Illuminate\Http\Request
+
+    # Paths to exclude from analysis
+    excludePaths:
+        - src/resources/views/*
+
+    # Error suppression for unavoidable issues
+    ignoreErrors:
+        # Ignore trait.unused warnings for package-exposed traits (consumers use them)
+        -
+            message: '#Trait Equidna\\Toolkit\\Traits\\Database\\HasCompositePrimaryKey is used zero times#'
+            paths:
+                - src/Traits/Database/HasCompositePrimaryKey.php
+
+        -
+            message: '#Trait Equidna\\Toolkit\\Traits\\Database\\Paginator is used zero times#'
+            paths:
+                - src/Traits/Database/Paginator.php

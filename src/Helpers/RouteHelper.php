@@ -1,55 +1,61 @@
 <?php
 
 /**
- * RouteHelper
- *
- * @author Gabriel Ruelas
- * @license MIT
- * @version 1.0.0
- *
- * Provides static utility methods for request type detection and routing logic in Laravel applications.
+ * Provides request-context helpers to determine routing intent and response type.
+ * PHP 8.0+
+ * @package   Equidna\Toolkit\Helpers
+ * @author    Gabriel Ruelas <gruelasjr@gmail.com>
+ * @license   https://opensource.org/licenses/MIT MIT License
+ * @link      https://github.com/EquidnaMX/laravel-toolkit Documentation
  */
 
 namespace Equidna\Toolkit\Helpers;
 
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Exception;
 
+/**
+ * Offers utilities for identifying the current request channel or format.
+ */
 class RouteHelper
 {
     /**
-     * Determine if the application is running in the console.
+     * Determines whether the application executes within the console.
      *
-     * @return bool True if the application is running in the console, false otherwise.
+     * @return bool  True when the Laravel application runs via CLI.
      */
     public static function isConsole(): bool
     {
         try {
             return app()->runningInConsole();
         } catch (Exception $e) {
-            // Fallback for cases where app() is not available
             return php_sapi_name() === 'cli';
         }
     }
 
     /**
-     * Determine if the request is a web request.
+     * Determines whether the current request should be handled as web traffic.
      *
-     * @return bool True if the request is a web request, false otherwise.
+     * @return bool  True when none of the API-focused channels apply.
      */
     public static function isWeb(): bool
     {
         return !(self::isApi() || self::isHook() || self::isIoT() || self::isConsole());
     }
 
-
     /**
-     * Determine if the request is an API request.
+     * Determines whether the request targets an API-prefixed route.
      *
-     * @return bool True if the request is an API request, false otherwise.
+     * @return bool  True when the first segment matches an API pattern.
      */
     public static function isApi(): bool
     {
-        $firstSegment = request()?->segment(1);
+        if (self::isConsole()) {
+            return false;
+        }
+
+        $firstSegment = self::getRequest()?->segment(1);
 
         if (is_null($firstSegment)) {
             return false;
@@ -59,86 +65,115 @@ class RouteHelper
     }
 
     /**
-     * Determine if the request is a hook request.
+     * Determines whether the request hits the hooks namespace.
      *
-     * @return bool True if the request is a hook request, false otherwise.
+     * @return bool  True when the URI matches the hooks wildcard.
      */
     public static function isHook(): bool
     {
-        return request()?->is('hooks/*') ?? false;
+        if (self::isConsole()) {
+            return false;
+        }
+
+        return self::getRequest()?->is('hooks/*') ?? false;
     }
 
     /**
-     * Determine if the request is an IoT request.
+     * Determines whether the request targets the IoT namespace.
      *
-     * @return bool True if the request is an IoT request, false otherwise.
+     * @return bool  True when the URI begins with iot/.
      */
     public static function isIoT(): bool
     {
-        return request()?->is('iot/*') ?? false;
+        if (self::isConsole()) {
+            return false;
+        }
+
+        return self::getRequest()?->is('iot/*') ?? false;
     }
 
-
     /**
-     * Determines if the given string is a valid expression.
+     * Determines whether the given path expression matches the request.
      *
-     * @param string $expression The string to evaluate.
-     * @return bool True if the string is a valid expression, false otherwise.
+     * @param  string $expression Glob-style expression evaluated against the request path.
+     * @return bool               True when the expression matches.
      */
     public static function isExpression(string $expression): bool
     {
-        return request()?->is($expression) ?? false;
+        if (self::isConsole()) {
+            return false;
+        }
+
+        return self::getRequest()?->is($expression) ?? false;
     }
 
     /**
-     * Determine if the request expects a JSON response.
+     * Determines whether the request expects a JSON payload.
      *
-     * @return bool True if the request expects JSON, false otherwise.
+     * @return bool  True when JSON is the desired representation.
      */
     public static function wantsJson(): bool
     {
-        return self::isApi() ||
-            self::isHook() ||
-            self::isIoT() ||
-            request()?->expectsJson();
+        if (self::isConsole()) {
+            return false;
+        }
+
+        return self::isApi()
+            || self::isHook()
+            || self::isIoT()
+            || (self::getRequest()?->expectsJson() ?? false);
     }
 
     /**
-     * Get the current request method.
+     * Returns the current HTTP method name.
      *
-     * @return string|null The HTTP method (GET, POST, etc.) or null if no request.
+     * @return string|null The HTTP method (GET, POST, etc.) or null when unavailable.
      */
     public static function getMethod(): ?string
     {
-        return request()?->method();
+        if (self::isConsole()) {
+            return null;
+        }
+
+        return self::getRequest()?->method();
     }
 
     /**
-     * Check if the current request is a specific HTTP method.
+     * Checks whether the request method matches the provided verb.
      *
-     * @param string $method The HTTP method to check (GET, POST, PUT, DELETE, etc.).
-     * @return bool True if the request method matches, false otherwise.
+     * @param  string $method HTTP verb to compare against the request method.
+     * @return bool           True when the method matches.
      */
     public static function isMethod(string $method): bool
     {
-        return request()?->isMethod($method) ?? false;
+        if (self::isConsole()) {
+            return false;
+        }
+
+        return self::getRequest()?->isMethod($method) ?? false;
     }
 
     /**
-     * Get the current route name.
+     * Returns the current named route when available.
      *
-     * @return string|null The route name or null if not available.
+     * @return string|null Route name or null when not resolved.
      */
     public static function getRouteName(): ?string
     {
-        return request()?->route()?->getName();
+        if (self::isConsole()) {
+            return null;
+        }
+
+        $route = self::getRequest()?->route();
+
+        return $route ? $route->getName() : null;
     }
 
     /**
-     * Check if the current route has a specific name.
+     * Determines whether the current route name matches the given value.
      *
-     * @param string $name The route name to check.
-     * @return bool True if the route name matches, false otherwise.
+     * @param  string $name Route name to compare.
+     * @return bool         True when the current route name equals the provided name.
      */
     public static function isRouteName(string $name): bool
     {
@@ -146,13 +181,33 @@ class RouteHelper
     }
 
     /**
-     * Checks if the current route name contains the specified string.
+     * Determines whether the current route name contains the provided substring.
      *
-     * @param string $name The string to search for in the current route name.
-     * @return bool Returns true if the current route name contains the specified string, false otherwise.
+     * @param  string $name Substring to look for in the route name.
+     * @return bool         True when the route name contains the substring.
      */
     public static function routeContains(string $name): bool
     {
-        return str_contains(self::getRouteName() ?? '', $name);
+        if (self::isConsole()) {
+            return false;
+        }
+
+        return Str::contains(self::getRouteName() ?: '', $name);
+    }
+
+    /**
+     * Resolves the current HTTP request when available.
+     *
+     * @return Request|null Request instance or null when one is not bound.
+     */
+    private static function getRequest(): ?Request
+    {
+        if (!app()->bound('request')) {
+            return null;
+        }
+
+        $request = request();
+
+        return $request instanceof Request ? $request : null;
     }
 }

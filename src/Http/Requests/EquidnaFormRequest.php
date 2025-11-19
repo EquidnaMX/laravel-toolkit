@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Provides a base FormRequest with consistent validation failure responses.
+ * PHP 8.0+
+ * @package   Equidna\Toolkit\Http\Requests
+ * @author    Gabriel Ruelas <gruelasjr@gmail.com>
+ * @license   https://opensource.org/licenses/MIT MIT License
+ * @link      https://laravel.com/docs/12.x/validation#form-request-validation Documentation
+ */
+
 namespace Equidna\Toolkit\Http\Requests;
 
 use Illuminate\Contracts\Validation\Validator;
@@ -18,16 +27,17 @@ use Equidna\Toolkit\Exceptions\BadRequestException;
 class EquidnaFormRequest extends FormRequest
 {
     /**
-     * Handle a failed validation attempt.
+     * Throws a BadRequestException when validation fails to maintain response parity.
      *
-     * @param Validator $validator
-     * @throws BadRequestException
+     * @param  Validator           $validator Validation result instance containing messages.
+     * @return void
+     * @throws BadRequestException When validation data is invalid.
      */
-    public function failedValidation(Validator $validator)
+    protected function failedValidation(Validator $validator): void
     {
         throw new BadRequestException(
-            message: 'Error de validación',
-            errors: $validator->errors()->toArray()
+            message: 'Validation error',
+            errors: $validator->errors()->toArray(),
         );
     }
 }

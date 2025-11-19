@@ -1,5 +1,16 @@
 # Changelog
 
+## [Unreleased]
+
+_No changes yet._
+
+## [1.0.3] - 2025-11-19
+
+### Changed
+
+- Documentation: Clarified PHPStan guidance in `README.md` regarding `trait.unused` findings and suggested suppression or test/usage examples. (No functional changes)
+- Bumped package version to `1.0.3` to prepare the release.
+
 ## [1.0.2] - 2025-11-18
 
 ### Fixed (1.0.2)

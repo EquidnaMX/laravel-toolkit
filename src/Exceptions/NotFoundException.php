@@ -26,8 +26,11 @@ class NotFoundException extends Exception
      * @param Throwable|null $previous Previous exception for chaining.
      * @param array $errors Optional array of error details.
      */
-    public function __construct(string $message = 'Not Found', ?Throwable $previous = null, private ?array $errors = null)
-    {
+    public function __construct(
+        string $message = 'Not Found',
+        ?Throwable $previous = null,
+        private ?array $errors = null
+    ) {
         parent::__construct($message, 404, $previous);
     }
 
@@ -39,10 +42,10 @@ class NotFoundException extends Exception
     public function report(): void
     {
         Log::error('NotFoundException: ' . $this->getMessage(), [
-            'code' => $this->getCode(),
-            'file' => $this->getFile(),
-            'line' => $this->getLine(),
-            'errors' => $this->errors
+            'code'   => $this->getCode(),
+            'file'   => $this->getFile(),
+            'line'   => $this->getLine(),
+            'errors' => $this->errors,
         ]);
     }
 

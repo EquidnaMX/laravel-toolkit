@@ -1,10 +1,14 @@
 <?php
 
 /**
- * @author Gabriel Ruelas
- * @license MIT
- * @version 1.0.0
+ * Centralizes JSON, redirect, and console responses for every execution context.
  *
+ * PHP 8.0+
+ *
+ * @package   Equidna\Toolkit\Helpers
+ * @author    Gabriel Ruelas <gruelasjr@gmail.com>
+ * @license   https://opensource.org/licenses/MIT MIT License
+ * @link      https://github.com/EquidnaMX/laravel-toolkit Documentation
  */
 
 namespace Equidna\Toolkit\Helpers;
@@ -12,8 +16,10 @@ namespace Equidna\Toolkit\Helpers;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Equidna\Toolkit\Helpers\RouteHelper;
 
+/**
+ * Provides helper responses that honor the active context (console, API, hooks, or web).
+ */
 class ResponseHelper
 {
     // HTTP Status Code Constants for better maintainability
@@ -32,54 +38,69 @@ class ResponseHelper
     public const HTTP_INTERNAL_SERVER_ERROR = 500;
 
     /**
-     * Generates a response based on the context (console, API, hook, or web).
+     * Generates a context-aware response for console, API, hook, or web flows.
      *
-     * @param int $status The HTTP status code of the operation.
-     * @param string $message The message to be included in the response.
-     * @param array $errors An array of errors to include in the response. Default is an empty array.
-     * @param mixed $data Optional data to include in API responses. Default is null.
-     * @param array $headers Optional headers to include in the response. Default is an empty array.
-     * @param string|null $forward_url The URL to redirect to if applicable. Default is null.
-     *
+     * @param  int                              $status        HTTP status code delivered to the client.
+     * @param  string                           $message       Human-readable response message.
+     * @param  array<int|string, mixed>         $errors        Error bag keyed by attribute name.
+     * @param  mixed                            $data          Optional payload attached to the response.
+     * @param  array<string, string>            $headers       Additional headers appended to the response.
+     * @param  string|null                      $forward_url   Destination URL for redirects in web flows.
      * @return string|JsonResponse|RedirectResponse
      */
-    private static function generateResponse(int $status, string $message, array $errors = [], mixed $data = null, array $headers = [], ?string $forward_url = null): string|JsonResponse|RedirectResponse
-    {
+    private static function generateResponse(
+        int $status,
+        string $message,
+        array $errors = [],
+        mixed $data = null,
+        array $headers = [],
+        ?string $forward_url = null
+    ): string|JsonResponse|RedirectResponse {
         if (RouteHelper::isConsole()) {
             return $message;
         }
 
         if (RouteHelper::wantsJson()) {
-            return self::generateJsonResponse(status: $status, message: $message, errors: $errors, data: $data, headers: $headers);
+            return self::generateJsonResponse(
+                status: $status,
+                message: $message,
+                errors: $errors,
+                data: $data,
+                headers: $headers,
+            );
         }
 
         return redirect(
             to: $forward_url ?? url()->previous(),
-            headers: $headers
+            headers: $headers,
         )->with(
             [
                 'status'  => $status,
                 'message' => $message,
                 'errors'  => $errors,
-                'data'    => $data
+                'data'    => $data,
             ]
         )->withErrors($errors)
             ->withInput();
     }
 
     /**
-     * Generates a JSON response with the provided data.
+     * Builds a JSON response structure that mirrors Laravel's default API shape.
      *
-     * @param int $status The HTTP status code.
-     * @param string $message The response message.
-     * @param array $errors Array of errors to include. Default is an empty array.
-     * @param mixed $data Optional data to include. Default is null.
-     * @param array $headers Optional headers to include. Default is an empty array.
-     *
+     * @param  int                              $status    HTTP status code.
+     * @param  string                           $message   Text describing the operation outcome.
+     * @param  array<int|string, mixed>         $errors    Error bag persisted for failing responses.
+     * @param  mixed                            $data      Optional payload returned to the consumer.
+     * @param  array<string, string>            $headers   Extra headers applied to the JSON response.
      * @return JsonResponse
      */
-    private static function generateJsonResponse(int $status, string $message, array $errors = [], mixed $data = null, array $headers = []): JsonResponse
-    {
+    private static function generateJsonResponse(
+        int $status,
+        string $message,
+        array $errors = [],
+        mixed $data = null,
+        array $headers = []
+    ): JsonResponse {
         if ($status === self::HTTP_NO_CONTENT) {
             return response()->json(null, $status, $headers);
         }
@@ -103,299 +124,355 @@ class ResponseHelper
             ->json(
                 $response,
                 $status,
-                $headers
+                $headers,
             );
     }
 
     // SUCCESS RESPONSES
 
     /**
-     * Generates a 200 OK response.
+     * Returns a 200 OK response for successful synchronous operations.
      *
-     * @param string $message The success message to include in the response.
-     * @param mixed $data Optional data to include in the response. Default is null.
-     * @param array $headers Optional headers to include in the response. Default is an empty array.
-     * @param string|null $forward_url Optional URL to redirect to. Default is null.
+     * @param  string                           $message      Message communicated to the consumer.
+     * @param  mixed                            $data         Optional payload (JSON body or flash data).
+     * @param  array<string, string>            $headers      Additional headers applied to the response.
+     * @param  string|null                      $forward_url  Redirect URL for web contexts.
      * @return string|JsonResponse|RedirectResponse
      */
-    public static function success(string $message, mixed $data = null, array $headers = [], ?string $forward_url = null): string|JsonResponse|RedirectResponse
-    {
+    public static function success(
+        string $message,
+        mixed $data = null,
+        array $headers = [],
+        ?string $forward_url = null
+    ): string|JsonResponse|RedirectResponse {
         return self::generateResponse(
             status: self::HTTP_OK,
             message: $message,
             errors: [],
             data: $data,
             headers: $headers,
-            forward_url: $forward_url
+            forward_url: $forward_url,
         );
     }
 
     /**
-     * Generates a 201 Created response.
+     * Returns a 201 Created response once a resource is persisted.
      *
-     * @param string $message The success message to include in the response.
-     * @param mixed $data Optional data to include in the response. Default is null.
-     * @param array $headers Optional headers to include in the response. Default is an empty array.
-     * @param string|null $forward_url Optional URL to redirect to. Default is null.
+     * @param  string                           $message      Message communicated to the consumer.
+     * @param  mixed                            $data         Optional payload describing the resource.
+     * @param  array<string, string>            $headers      Additional headers applied to the response.
+     * @param  string|null                      $forward_url  Redirect URL for web contexts.
      * @return string|JsonResponse|RedirectResponse
      */
-    public static function created(string $message, mixed $data = null, array $headers = [], ?string $forward_url = null): string|JsonResponse|RedirectResponse
-    {
+    public static function created(
+        string $message,
+        mixed $data = null,
+        array $headers = [],
+        ?string $forward_url = null
+    ): string|JsonResponse|RedirectResponse {
         return self::generateResponse(
             status: self::HTTP_CREATED,
             message: $message,
             errors: [],
             data: $data,
             headers: $headers,
-            forward_url: $forward_url
+            forward_url: $forward_url,
         );
     }
 
     /**
-     * Generates a 202 Accepted response (for asynchronous processing).
+     * Returns a 202 Accepted response when processing occurs asynchronously.
      *
-     * @param string $message The success message to include in the response.
-     * @param mixed $data Optional data to include in the response. Default is null.
-     * @param array $headers Optional headers to include in the response. Default is an empty array.
-     * @param string|null $forward_url Optional URL to redirect to. Default is null.
+     * @param  string                           $message      Message communicated to the consumer.
+     * @param  mixed                            $data         Optional payload (queue reference, etc.).
+     * @param  array<string, string>            $headers      Additional headers applied to the response.
+     * @param  string|null                      $forward_url  Redirect URL for web contexts.
      * @return string|JsonResponse|RedirectResponse
      */
-    public static function accepted(string $message, mixed $data = null, array $headers = [], ?string $forward_url = null): string|JsonResponse|RedirectResponse
-    {
+    public static function accepted(
+        string $message,
+        mixed $data = null,
+        array $headers = [],
+        ?string $forward_url = null
+    ): string|JsonResponse|RedirectResponse {
         return self::generateResponse(
             status: self::HTTP_ACCEPTED,
             message: $message,
             errors: [],
             data: $data,
             headers: $headers,
-            forward_url: $forward_url
+            forward_url: $forward_url,
         );
     }
 
     /**
-     * Generates a 204 No Content response (typically for successful DELETE operations).
+     * Returns a 204 No Content response for operations that succeed without payload.
      *
-     * @param string $message The success message. Default is 'Operation completed successfully'.
-     * @param array $headers Optional headers to include in the response. Default is an empty array.
-     * @param string|null $forward_url Optional URL to redirect to. Default is null.
+     * @param  string                           $message      Human-readable confirmation message.
+     * @param  array<string, string>            $headers      Additional headers applied to the response.
+     * @param  string|null                      $forward_url  Redirect URL for web contexts.
      * @return string|JsonResponse|RedirectResponse
      */
-    public static function noContent(string $message = 'Operation completed successfully', array $headers = [], ?string $forward_url = null): string|JsonResponse|RedirectResponse
-    {
+    public static function noContent(
+        string $message = 'Operation completed successfully',
+        array $headers = [],
+        ?string $forward_url = null
+    ): string|JsonResponse|RedirectResponse {
         return self::generateResponse(
             status: self::HTTP_NO_CONTENT,
             message: $message,
             errors: [],
             data: null,
             headers: $headers,
-            forward_url: $forward_url
+            forward_url: $forward_url,
         );
     }
 
     // ERROR RESPONSES
 
     /**
-     * Generates a 400 Bad Request response.
+     * Returns a 400 Bad Request response for validation or format errors.
      *
-     * @param string $message The message to include in the response.
-     * @param array $errors An array of errors to include in the response. Default is an empty array.
-     * @param array $headers Optional headers to include in the response. Default is an empty array.
-     * @param string|null $forward_url Optional URL to redirect to. Default is null.
+     * @param  string                           $message      Message describing the failure.
+     * @param  array<int|string, mixed>         $errors       Error details keyed by attribute name.
+     * @param  array<string, string>            $headers      Additional headers applied to the response.
+     * @param  string|null                      $forward_url  Redirect URL for web contexts.
      * @return string|JsonResponse|RedirectResponse
      */
-    public static function badRequest(string $message, array $errors = [], array $headers = [], ?string $forward_url = null): string|JsonResponse|RedirectResponse
-    {
+    public static function badRequest(
+        string $message,
+        array $errors = [],
+        array $headers = [],
+        ?string $forward_url = null
+    ): string|JsonResponse|RedirectResponse {
         return self::generateResponse(
             status: self::HTTP_BAD_REQUEST,
             message: $message,
             errors: $errors,
             data: null,
             headers: $headers,
-            forward_url: $forward_url
+            forward_url: $forward_url,
         );
     }
 
     /**
-     * Generates a 401 Unauthorized response.
+     * Returns a 401 Unauthorized response when authentication fails.
      *
-     * @param string $message The message to include in the response.
-     * @param array $errors An array of errors to include in the response. Default is an empty array.
-     * @param array $headers Optional headers to include in the response. Default is an empty array.
-     * @param string|null $forward_url The URL to forward to, if any. Default is null.
+     * @param  string                           $message      Message describing the authentication issue.
+     * @param  array<int|string, mixed>         $errors       Error details keyed by attribute name.
+     * @param  array<string, string>            $headers      Additional headers applied to the response.
+     * @param  string|null                      $forward_url  Redirect URL for web contexts.
      * @return string|JsonResponse|RedirectResponse
      */
-    public static function unauthorized(string $message, array $errors = [], array $headers = [], ?string $forward_url = null): string|JsonResponse|RedirectResponse
-    {
+    public static function unauthorized(
+        string $message,
+        array $errors = [],
+        array $headers = [],
+        ?string $forward_url = null
+    ): string|JsonResponse|RedirectResponse {
         return self::generateResponse(
             status: self::HTTP_UNAUTHORIZED,
             message: $message,
             errors: $errors,
             data: null,
+            headers: $headers,
             forward_url: $forward_url,
-            headers: $headers
         );
     }
 
     /**
-     * Generates a 403 Forbidden response.
+     * Returns a 403 Forbidden response for authorization failures.
      *
-     * @param string $message The message to include in the response.
-     * @param array $errors An array of errors to include in the response. Default is an empty array.
-     * @param array $headers Optional headers to include in the response. Default is an empty array.
-     * @param string|null $forward_url Optional URL to redirect to. Default is null.
+     * @param  string                           $message      Message describing the authorization issue.
+     * @param  array<int|string, mixed>         $errors       Error details keyed by attribute name.
+     * @param  array<string, string>            $headers      Additional headers applied to the response.
+     * @param  string|null                      $forward_url  Redirect URL for web contexts.
      * @return string|JsonResponse|RedirectResponse
      */
-    public static function forbidden(string $message, array $errors = [], array $headers = [], ?string $forward_url = null): string|JsonResponse|RedirectResponse
-    {
+    public static function forbidden(
+        string $message,
+        array $errors = [],
+        array $headers = [],
+        ?string $forward_url = null
+    ): string|JsonResponse|RedirectResponse {
         return self::generateResponse(
             status: self::HTTP_FORBIDDEN,
             message: $message,
             errors: $errors,
             data: null,
             headers: $headers,
-            forward_url: $forward_url
+            forward_url: $forward_url,
         );
     }
 
     /**
-     * Generates a 404 Not Found response.
+     * Returns a 404 Not Found response when a resource is missing.
      *
-     * @param string $message The message to include in the response.
-     * @param array $errors An array of errors to include in the response. Default is an empty array.
-     * @param array $headers Optional headers to include in the response. Default is an empty array.
-     * @param string|null $forward_url Optional URL to redirect to. Default is null.
+     * @param  string                           $message      Message describing the missing resource.
+     * @param  array<int|string, mixed>         $errors       Error details keyed by attribute name.
+     * @param  array<string, string>            $headers      Additional headers applied to the response.
+     * @param  string|null                      $forward_url  Redirect URL for web contexts.
      * @return string|JsonResponse|RedirectResponse
      */
-    public static function notFound(string $message, array $errors = [], array $headers = [], ?string $forward_url = null): string|JsonResponse|RedirectResponse
-    {
+    public static function notFound(
+        string $message,
+        array $errors = [],
+        array $headers = [],
+        ?string $forward_url = null
+    ): string|JsonResponse|RedirectResponse {
         return self::generateResponse(
             status: self::HTTP_NOT_FOUND,
             message: $message,
             errors: $errors,
             data: null,
             headers: $headers,
-            forward_url: $forward_url
+            forward_url: $forward_url,
         );
     }
 
     /**
-     * Generates a 406 Not Acceptable response.
+     * Returns a 406 Not Acceptable response when negotiation fails.
      *
-     * @param string $message The message to include in the response.
-     * @param array $errors An array of errors to include in the response. Default is an empty array.
-     * @param array $headers Optional headers to include in the response. Default is an empty array.
-     * @param string|null $forward_url Optional URL to redirect to. Default is null.
+     * @param  string                           $message      Message describing the negotiation issue.
+     * @param  array<int|string, mixed>         $errors       Error details keyed by attribute name.
+     * @param  array<string, string>            $headers      Additional headers applied to the response.
+     * @param  string|null                      $forward_url  Redirect URL for web contexts.
      * @return string|JsonResponse|RedirectResponse
      */
-    public static function notAcceptable(string $message, array $errors = [], array $headers = [], ?string $forward_url = null): string|JsonResponse|RedirectResponse
-    {
+    public static function notAcceptable(
+        string $message,
+        array $errors = [],
+        array $headers = [],
+        ?string $forward_url = null
+    ): string|JsonResponse|RedirectResponse {
         return self::generateResponse(
             status: self::HTTP_NOT_ACCEPTABLE,
             message: $message,
             errors: $errors,
             data: null,
             headers: $headers,
-            forward_url: $forward_url
+            forward_url: $forward_url,
         );
     }
 
     /**
-     * Generates a 409 Conflict response.
+     * Returns a 409 Conflict response when state changes collide.
      *
-     * @param string $message The message to include in the response.
-     * @param array $errors An array of errors to include in the response. Default is an empty array.
-     * @param array $headers Optional headers to include in the response. Default is an empty array.
-     * @param string|null $forward_url Optional URL to redirect to. Default is null.
+     * @param  string                           $message      Message describing the conflict condition.
+     * @param  array<int|string, mixed>         $errors       Error details keyed by attribute name.
+     * @param  array<string, string>            $headers      Additional headers applied to the response.
+     * @param  string|null                      $forward_url  Redirect URL for web contexts.
      * @return string|JsonResponse|RedirectResponse
      */
-    public static function conflict(string $message, array $errors = [], array $headers = [], ?string $forward_url = null): string|JsonResponse|RedirectResponse
-    {
+    public static function conflict(
+        string $message,
+        array $errors = [],
+        array $headers = [],
+        ?string $forward_url = null
+    ): string|JsonResponse|RedirectResponse {
         return self::generateResponse(
             status: self::HTTP_CONFLICT,
             message: $message,
             errors: $errors,
             data: null,
             headers: $headers,
-            forward_url: $forward_url
+            forward_url: $forward_url,
         );
     }
 
     /**
-     * Generates a 422 Unprocessable Entity response.
+     * Returns a 422 Unprocessable Entity response for validation failures.
      *
-     * @param string $message The message to include in the response.
-     * @param array $errors An array of validation errors. Default is an empty array.
-     * @param array $headers Optional headers to include in the response. Default is an empty array.
-     * @param string|null $forward_url Optional URL to redirect to. Default is null.
+     * @param  string                           $message      Message describing the validation issue.
+     * @param  array<int|string, mixed>         $errors       Validation errors keyed by attribute name.
+     * @param  array<string, string>            $headers      Additional headers applied to the response.
+     * @param  string|null                      $forward_url  Redirect URL for web contexts.
      * @return string|JsonResponse|RedirectResponse
      */
-    public static function unprocessableEntity(string $message, array $errors = [], array $headers = [], ?string $forward_url = null): string|JsonResponse|RedirectResponse
-    {
+    public static function unprocessableEntity(
+        string $message,
+        array $errors = [],
+        array $headers = [],
+        ?string $forward_url = null
+    ): string|JsonResponse|RedirectResponse {
         return self::generateResponse(
             status: self::HTTP_UNPROCESSABLE_ENTITY,
             message: $message,
             errors: $errors,
             data: null,
             headers: $headers,
-            forward_url: $forward_url
+            forward_url: $forward_url,
         );
     }
 
     /**
-     * Generates a 429 Too Many Requests response.
+     * Returns a 429 Too Many Requests response for throttled clients.
      *
-     * @param string $message The message to include in the response.
-     * @param array $errors An array of errors to include in the response. Default is an empty array.
-     * @param array $headers Optional headers to include in the response. Default is an empty array.
-     * @param string|null $forward_url Optional URL to redirect to. Default is null.
+     * @param  string                           $message      Message describing the throttling reason.
+     * @param  array<int|string, mixed>         $errors       Error details keyed by attribute name.
+     * @param  array<string, string>            $headers      Additional headers applied to the response.
+     * @param  string|null                      $forward_url  Redirect URL for web contexts.
      * @return string|JsonResponse|RedirectResponse
      */
-    public static function tooManyRequests(string $message, array $errors = [], array $headers = [], ?string $forward_url = null): string|JsonResponse|RedirectResponse
-    {
+    public static function tooManyRequests(
+        string $message,
+        array $errors = [],
+        array $headers = [],
+        ?string $forward_url = null
+    ): string|JsonResponse|RedirectResponse {
         return self::generateResponse(
             status: self::HTTP_TOO_MANY_REQUESTS,
             message: $message,
             errors: $errors,
             data: null,
             headers: $headers,
-            forward_url: $forward_url
+            forward_url: $forward_url,
         );
     }
 
     /**
-     * Generates an error response with a 500 status code.
+    /**
+     * Returns a 500 Internal Server Error response for unexpected failures.
      *
-     * @param string $message The error message to be included in the response.
-     * @param array $errors An array of errors to include in the response. Default is an empty array.
-     * @param array $headers Optional headers to include in the response. Default is an empty array.
-     * @param string|null $forward_url Optional URL to redirect to. Default is null.
+     * @param  string                           $message      Message describing the unexpected condition.
+     * @param  array<int|string, mixed>         $errors       Error details keyed by attribute name.
+     * @param  array<string, string>            $headers      Additional headers applied to the response.
+     * @param  string|null                      $forward_url  Redirect URL for web contexts.
      * @return string|JsonResponse|RedirectResponse
      */
-    public static function error(string $message, array $errors = [], array $headers = [], ?string $forward_url = null): string|JsonResponse|RedirectResponse
-    {
+    public static function error(
+        string $message,
+        array $errors = [],
+        array $headers = [],
+        ?string $forward_url = null
+    ): string|JsonResponse|RedirectResponse {
         return self::generateResponse(
             status: self::HTTP_INTERNAL_SERVER_ERROR,
             message: $message,
             errors: $errors,
             data: null,
             headers: $headers,
-            forward_url: $forward_url
+            forward_url: $forward_url,
         );
     }
 
     // UTILITY METHODS
 
     /**
-     * Handles exceptions and returns an appropriate response based on the exception code.
+     * Maps an exception to an HTTP-aware response using the exception code when possible.
      *
-     * @param Exception $exception The exception to handle.
-     * @param array $errors Additional errors to include in the response. Default is an empty array.
-     * @param array $headers Optional headers to include in the response. Default is an empty array.
-     * @param string|null $forward_url Optional URL to forward to in case of an error. Default is null.
-     * @return string|JsonResponse|RedirectResponse The response corresponding to the exception code.
+     * @param  Exception                        $exception    Thrown exception captured by the caller.
+     * @param  array<int|string, mixed>         $errors       Supplemental error payload.
+     * @param  array<string, string>            $headers      Additional headers applied to the response.
+     * @param  string|null                      $forward_url  Redirect URL for web contexts.
+     * @return string|JsonResponse|RedirectResponse
      */
-    public static function handleException(Exception $exception, array $errors = [], array $headers = [], ?string $forward_url = null): string|JsonResponse|RedirectResponse
-    {
+    public static function handleException(
+        Exception $exception,
+        array $errors = [],
+        array $headers = [],
+        ?string $forward_url = null
+    ): string|JsonResponse|RedirectResponse {
         $code    = $exception->getCode();
         $message = $exception->getMessage();
 
@@ -415,7 +492,7 @@ class ResponseHelper
                     self::HTTP_CONFLICT,
                     self::HTTP_UNPROCESSABLE_ENTITY,
                     self::HTTP_TOO_MANY_REQUESTS,
-                    self::HTTP_INTERNAL_SERVER_ERROR
+                    self::HTTP_INTERNAL_SERVER_ERROR,
                 ]
             )
         ) {
@@ -436,7 +513,7 @@ class ResponseHelper
                 message: "An unexpected error occurred. ({$code}: {$message})",
                 errors: $errors,
                 headers: $headers,
-                forward_url: $forward_url
+                forward_url: $forward_url,
             ),
         };
     }

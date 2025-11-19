@@ -1,8 +1,48 @@
-# Equidna Toolkit v1.0.2
+# Equidna Toolkit v1.0.3
 
 > **A modern Laravel package for multi-context, modular application development.**
 
-Equidna Toolkit provides robust helpers, traits, middleware, and service providers to streamline development for web, API, hooks, and IoT contexts. Designed for Laravel 11 & 12, it enables unified response patterns, context-aware utilities, and advanced exception handling for professional-grade PHP projects.
+Equidna Toolkit bundles helpers, middleware, traits, and a service provider that keep responses, validation, and pagination consistent across web, API, hook, IoT, and console entry points. Targeted for Laravel 11 & 12 on PHP 8.0+, it embraces Laravel conventions while abstracting repetitive infrastructure code.
+
+## 🚀 Highlights
+
+- **Route-aware helpers** – Detect API/web/hook/IoT/console contexts with `RouteHelper` and branch logic safely.
+- **Unified responses** – `ResponseHelper` emits JSON, redirects, or console strings from a single API.
+- **Validation parity** – `EquidnaFormRequest` throws HTTP-aware exceptions instead of redirecting on failure.
+- **Paginator utilities** – Build `LengthAwarePaginator` instances from arrays/collections with query sanitization.
+- **Pluggable middleware** – Opt-in layers for forcing JSON, clearing session history, and disabling Debugbar.
+- **Composite key trait** – Handle multi-column primary keys without reimplementing boilerplate.
+
+## 📦 Installation
+
+```bash
+composer require equidna/toolkit
+php artisan vendor:publish --tag=equidna:config
+```
+
+Auto-discovery registers the service provider. For manual registration, add it to `config/app.php`:
+
+````php
+'providers' => [
+Questions or ideas? Open an issue or discussion in the repository—we welcome feedback for new multi-context helpers.
+
+> A modern Laravel package for multi-context, modular application development.
+
+Equidna Toolkit provides helpers, traits, middleware, and a service provider to streamline responses and errors across web, API, hooks, and IoT contexts.
+
+## Key Features
+
+- Multi-context request handling (web, API, hooks, IoT, console)
+- Unified response helpers and custom exceptions
+- Eloquent composite primary key support
+- Configurable pagination helpers
+- Plug-and-play middleware and zero-config service provider
+
+# Equidna Toolkit v1.0.3
+
+> **A modern Laravel package for multi-context, modular application development.**
+
+Equidna Toolkit provides helpers, traits, middleware, and a service provider to streamline responses and errors across web, API, hooks, and IoT contexts. Designed for Laravel 11 & 12, it enables unified response patterns, context-aware utilities, and advanced exception handling for professional-grade PHP projects.
 
 ## Key Features
 
@@ -26,10 +66,9 @@ Equidna Toolkit provides robust helpers, traits, middleware, and service provide
 ```sh
 composer require equidna/toolkit
 php artisan vendor:publish --tag=equidna:config
-```
+````
 
-[!TIP]
-If you use Laravel's package auto-discovery, the service provider is registered automatically. Otherwise, add it manually to your `config/app.php`:
+If you use Laravel package auto-discovery the service provider registers automatically; otherwise add it to `config/app.php`:
 
 ```php
 'providers' => [
@@ -39,205 +78,54 @@ If you use Laravel's package auto-discovery, the service provider is registered 
 
 ## Usage Examples
 
-### Context-Aware Responses
-
 ```php
 use Equidna\Toolkit\Helpers\ResponseHelper;
-// In a controller or service
+
 return ResponseHelper::success('Operation completed', ['foo' => 'bar']);
-// Returns JSON for API, redirect for web, plain text for console
 ```
 
-### Composite Primary Keys in Eloquent
+Composite primary keys:
 
 ```php
 use Equidna\Toolkit\Traits\Database\HasCompositePrimaryKey;
+
 class UserRole extends Model {
     use HasCompositePrimaryKey;
     public function getKeyName() { return ['user_id', 'role_id']; }
 }
 ```
 
-### Paginate Any Data
+Paginator helper:
 
 ```php
 use Equidna\Toolkit\Helpers\PaginatorHelper;
+
 $paginator = PaginatorHelper::buildPaginator($arrayOrCollection, $page, $itemsPerPage);
-```
-
-### Middleware Registration
-
-```php
-// In app/Http/Kernel.php
-protected $middlewareGroups = [
-    'web' => [
-        \Equidna\Toolkit\Http\Middleware\ExcludeFromHistory::class,
-    ],
-];
 ```
 
 ## Technical Overview
 
-**Multi-Context Request Detection**
+- `Helpers/` — Context-aware utilities (RouteHelper, ResponseHelper, PaginatorHelper)
+- `Http/Middleware/` — Middleware like `ExcludeFromHistory`, `ForceJsonResponse`, `DisableDebugbar`
+- `Exceptions/` — Custom HTTP exceptions auto-bound by the service provider
+- `Traits/Database/` — `HasCompositePrimaryKey`, `Paginator` (for Eloquent)
+- `Providers/` — `EquidnaLaravelToolkitServiceProvider`
 
-All helpers use null-safe operators and fallback logic for Laravel context availability. Example:
+## Development
 
-```php
-if (RouteHelper::wantsJson()) {
-    return ResponseHelper::success('Message', $data);
-}
-return redirect()->with(['status' => 'ok', 'message' => 'Message']);
-```
+- Coding Standard: PSR-12 (4-space indent)
+- Static Analysis: PHPStan (`vendor/bin/phpstan analyse`)
+- PHP: 8.0+
 
-**Directory Structure**
+### PHPStan note
 
-- `Helpers/` – Context-aware utilities (null-safe, fallback patterns)
-- `Http/Middleware/` – Session and response manipulation middleware
-- `Exceptions/` – Custom HTTP exceptions (auto-bound)
-- `Traits/Database/` – Eloquent extensions for composite keys and pagination
-- `Providers/` – Auto-discovery service provider
-- `config/` – Publishable config for pagination, etc.
+When running PHPStan on this library you may see `trait.unused` warnings for `Traits/Database/HasCompositePrimaryKey.php` and `Traits/Database/Paginator.php` — this is common for packages that expose traits intended for consumers to use in their applications. Options:
 
-## API Reference
-
-### Helpers
-
-#### RouteHelper
-
-Static methods for request type detection and routing logic:
-
-```php
-RouteHelper::isWeb();           // Is this a web request?
-RouteHelper::isApi();           // Is this an API request?
-RouteHelper::isHook();          // Is this a hook request?
-RouteHelper::isIoT();           // Is this an IoT request?
-RouteHelper::isExpression($exp);// Custom expression match
-RouteHelper::isConsole();       // Is this running in console?
-RouteHelper::wantsJson();       // Should respond with JSON?
-RouteHelper::getMethod();       // HTTP method
-RouteHelper::isMethod('POST');  // Is this a POST request?
-RouteHelper::getRouteName();    // Current route name
-RouteHelper::isRouteName('foo');// Is current route 'foo'?
-RouteHelper::routeContains('x');// Route name contains 'x'?
-```
-
-#### ResponseHelper
-
-Unified error and success responses. Returns a `RedirectResponse` for web, JSON for API, plain text for console.
-
-**Error Responses:**
-
-```php
-ResponseHelper::badRequest($msg, $errors = [], $headers = [], $forwardUrl = null);
-ResponseHelper::unauthorized($msg, $errors = [], $headers = [], $forwardUrl = null);
-ResponseHelper::forbidden($msg, $errors = [], $headers = [], $forwardUrl = null);
-ResponseHelper::notFound($msg, $errors = [], $headers = [], $forwardUrl = null);
-ResponseHelper::notAcceptable($msg, $errors = [], $headers = [], $forwardUrl = null);
-ResponseHelper::conflict($msg, $errors = [], $headers = [], $forwardUrl = null);
-ResponseHelper::unprocessableEntity($msg, $errors = [], $headers = [], $forwardUrl = null);
-ResponseHelper::tooManyRequests($msg, $errors = [], $headers = [], $forwardUrl = null);
-ResponseHelper::error($msg, $errors = [], $headers = [], $forwardUrl = null);
-ResponseHelper::handleException($exception, $errors = [], $headers = [], $forwardUrl = null);
-```
-
-**Success Responses:**
-
-```php
-ResponseHelper::success($msg, $data = null, $forwardUrl = null);
-ResponseHelper::created($msg, $data = null, $forwardUrl = null);
-ResponseHelper::accepted($msg, $data = null, $forwardUrl = null);
-ResponseHelper::noContent($msg = 'Operation completed successfully', $forwardUrl = null);
-```
-
-#### PaginatorHelper
-
-```php
-PaginatorHelper::buildPaginator(array|Collection $data, ?int $page = null, ?int $itemsPerPage = null, bool $setFullUrl = false): LengthAwarePaginator
-PaginatorHelper::appendCleanedRequest(LengthAwarePaginator $paginator, Request $request): void
-PaginatorHelper::setFullURL(LengthAwarePaginator $paginator): void
-```
-
-#### Traits
-
-- **HasCompositePrimaryKey**: Enables Eloquent models to support composite primary keys.
-  - Usage:
-  ```php
-  class MyModel extends Model {
-      use HasCompositePrimaryKey;
-      public function getKeyName() { return ['key1', 'key2']; }
-  }
-  ```
-- **Paginator**: Adds a `scopePaginator` to Eloquent models for flexible pagination with transformation support.
-  - Usage:
-  ```php
-  $results = $this->scopePaginator($query, $page, $pageName, $itemsPerPage, $setFullUrl, $transformation);
-  ```
-
-### Middleware
-
-- **ExcludeFromHistory**: Prevents the current request from being stored in the session as the current URL.
-- **ForceJsonResponse**: Forces the response to be JSON (sets `Accept: application/json`).
-- **ForceApiResponse**: (Deprecated) Use `ForceJsonResponse` instead.
-
-### Exception Classes
-
-Custom exceptions for each error response, with integrated logging and rendering. All exceptions share the following constructor:
-
-```php
-__construct(string $message = '...', ?Throwable $previous = null, array $errors = [])
-```
-
-Available exceptions:
-
-- `BadRequestException` (400)
-- `UnauthorizedException` (401)
-- `ForbiddenException` (403)
-- `NotFoundException` (404)
-- `NotAcceptableException` (406)
-- `ConflictException` (409)
-- `UnprocessableEntityException` (422)
-- `TooManyRequestsException` (429)
-
-**Example:**
-
-```php
-throw new BadRequestException('Invalid input', $previousException, ['field' => 'error']);
-```
-
-## Form Request Validation
-
-### EquidnaFormRequest
-
-`EquidnaFormRequest` extends Laravel's `FormRequest` to provide context-aware validation error handling. On validation failure, it throws a `BadRequestException` with a standard message and the validation errors array. This ensures API, web, and other contexts receive unified, appropriate error responses.
-
-**Usage Example:**
-
-```php
-use Equidna\Toolkit\Http\Requests\EquidnaFormRequest;
-
-class StoreUserRequest extends EquidnaFormRequest
-{
-    public function rules(): array
-    {
-        return [
-            'name' => 'required|string',
-            'email' => 'required|email',
-        ];
-    }
-}
-```
-
-On validation failure, a `BadRequestException` is thrown with a message and errors array, which is handled by the toolkit to provide a JSON response for API requests or a redirect with flash data for web requests, following the package's multi-context philosophy.
-
----
+- Leave the warning (informational).
+- Add an `ignoreErrors` rule for the specific message(s) in `phpstan.neon`.
+- Add minimal unit tests or example usage files that reference the traits so PHPStan recognises they are used.
 
 ## Configuration
-
-All config is referenced relative to the provider directory. Example:
-
-```php
-config('equidna.paginator.page_items');
-```
 
 Default config (`config/equidna.php`):
 
@@ -249,176 +137,59 @@ return [
 ];
 ```
 
-## Development
+## Response JSON shapes
 
-- Coding Standard: PSR-12, 4-space indent, 250-char line limit, StyleCI (laravel preset)
-- Static Analysis: PHPStan (`vendor/bin/phpstan analyse`)
-- PHP Version: 8.0+
-- No bundled tests: Please contribute tests if you extend the package!
+Success responses include `status`, `message` and optionally `data`:
 
-[!NOTE]
-This package is designed for advanced Laravel projects. For questions, open an issue or PR on GitHub.
+```json
+{
+  "status": 200,
+  "message": "Operation completed",
+  "data": { "foo": "bar" }
+}
+```
+
+Error responses contain `status`, `message` and `errors` (when status >= 400):
+
+```json
+{
+  "status": 422,
+  "message": "Validation error",
+  "errors": { "email": ["The email field is required."] }
+}
+```
+
+## Paginator notes
+
+`PaginatorHelper::buildPaginator()` uses `config('equidna.paginator.page_items')` when an explicit `items_per_page` isn't provided. The helper also strips a small set of sensitive query keys when appending request parameters; the default excluded keys are:
+
+```
+_token, page, client_user, client_token, client_token_type
+```
+
+## Exceptions (clarified)
+
+Package exceptions accept a message, an optional previous throwable, and an optional errors array. Each exception class sets its own HTTP status code internally. Example (BadRequestException):
+
+```php
+new BadRequestException(
+    message: 'Invalid input',
+    previous: $previousException,
+    errors: ['email' => ['invalid format']],
+);
+// BadRequestException sets HTTP status 400 internally.
+```
 
 ## Further Reading
 
 - [Laravel Documentation](https://laravel.com/docs)
 - [Equidna Toolkit on Packagist](https://packagist.org/packages/equidna/toolkit)
 
-[!TIP]
-For advanced integration patterns and edge cases, see the source code and open issues for real-world examples.
-
-Equidna Toolkit provides robust helpers, traits, middleware, and service providers to streamline development for web, API, hooks, and IoT contexts. Designed for Laravel 11 & 12, it enables unified response patterns, context-aware utilities, and advanced exception handling for professional-grade PHP projects.
-
 ---
 
-## 🚀 Key Features
+For full API reference and examples see the `src/` directory. If you'd like, I can also add a short section showing how to add `ignoreErrors` entries to `phpstan.neon` to silence the trait warnings.
 
-- **Multi-Context Request Handling**: Seamlessly detect and respond to web, API, hook, IoT, and console requests.
-- **Unified Response Helpers**: Consistent success and error responses for all contexts.
-- **Advanced Exception Architecture**: Custom HTTP exceptions with automatic Laravel binding and context-aware rendering.
-- **Eloquent Composite Key Support**: Effortlessly manage models with composite primary keys.
-- **Configurable Pagination**: Build paginated responses from arrays or collections with minimal code.
-- **Plug-and-Play Middleware**: Easily exclude requests from session history or force JSON responses.
-- **Zero-Config Service Provider**: Auto-discovers and binds all package features.
-
----
-
-## 📦 Installation
-
-```bash
-composer require equidna/toolkit
-php artisan vendor:publish --tag=equidna:config
-```
-
-[!TIP]
-If you use Laravel's package auto-discovery, the service provider is registered automatically. Otherwise, add it manually to your `config/app.php`:
-
-```php
-'providers' => [
-    Equidna\Toolkit\Providers\EquidnaLaravelToolkitServiceProvider::class,
-]
-```
-
----
-
-## 🧑‍💻 Usage Examples
-
-### 1. Context-Aware Responses
-
-```php
-use Equidna\Toolkit\Helpers\ResponseHelper;
-
-// In a controller or service
-return ResponseHelper::success('Operation completed', ['foo' => 'bar']);
-// Returns JSON for API, redirect for web, plain text for console
-```
-
-### 2. Composite Primary Keys in Eloquent
-
-```php
-use Equidna\Toolkit\Traits\Database\HasCompositePrimaryKey;
-
-class UserRole extends Model {
-    use HasCompositePrimaryKey;
-    public function getKeyName() { return ['user_id', 'role_id']; }
-}
-```
-
-### 3. Paginate Any Data
-
-```php
-use Equidna\Toolkit\Helpers\PaginatorHelper;
-
-$paginator = PaginatorHelper::buildPaginator($arrayOrCollection, $page, $itemsPerPage);
-```
-
-### 4. Middleware Registration
-
-```php
-// In app/Http/Kernel.php
-protected $middlewareGroups = [
-    'web' => [
-        \Equidna\Toolkit\Http\Middleware\ExcludeFromHistory::class,
-    ],
-];
-```
-
----
-
-## 🏗️ Technical Overview
-
-### Multi-Context Request Detection
-
-All helpers use null-safe operators and fallback logic for Laravel context availability. The core pattern is:
-
-```php
-if (RouteHelper::wantsJson()) {
-    return ResponseHelper::success('Message', $data);
-}
-return redirect()->with(['status' => 'ok', 'message' => 'Message']);
-```
-
-### Directory Structure
-
-- `Helpers/` – Context-aware utilities (null-safe, fallback patterns)
-- `Http/Middleware/` – Session and response manipulation middleware
-- `Exceptions/` – Custom HTTP exceptions (auto-bound)
-- `Traits/Database/` – Eloquent extensions for composite keys and pagination
-- `Providers/` – Auto-discovery service provider
-- `config/` – Publishable config for pagination, etc.
-
----
-
-## 🧩 API Reference
-
-### Helpers
-
-#### RouteHelper
-
-Static methods for request type detection and routing logic:
-
-```php
-RouteHelper::isWeb();           // Is this a web request?
-RouteHelper::isApi();           // Is this an API request?
-RouteHelper::isHook();          // Is this a hook request?
-RouteHelper::isIoT();           // Is this an IoT request?
-RouteHelper::isExpression($exp);// Custom expression match
-RouteHelper::isConsole();       // Is this running in console?
-RouteHelper::wantsJson();       // Should respond with JSON?
-RouteHelper::getMethod();       // HTTP method
-RouteHelper::isMethod('POST');  // Is this a POST request?
-RouteHelper::getRouteName();    // Current route name
-RouteHelper::isRouteName('foo');// Is current route 'foo'?
-RouteHelper::routeContains('x');// Route name contains 'x'?
-```
-
-#### ResponseHelper
-
-Unified error and success responses. Returns a `RedirectResponse` for web, JSON for API, plain text for console.
-
-**Error Responses:**
-
-```php
-ResponseHelper::badRequest($msg, $errors = [], $headers = [], $forwardUrl = null);
-ResponseHelper::unauthorized($msg, $errors = [], $headers = [], $forwardUrl = null);
-ResponseHelper::forbidden($msg, $errors = [], $headers = [], $forwardUrl = null);
-ResponseHelper::notFound($msg, $errors = [], $headers = [], $forwardUrl = null);
-ResponseHelper::notAcceptable($msg, $errors = [], $headers = [], $forwardUrl = null);
-ResponseHelper::conflict($msg, $errors = [], $headers = [], $forwardUrl = null);
-ResponseHelper::unprocessableEntity($msg, $errors = [], $headers = [], $forwardUrl = null);
-ResponseHelper::tooManyRequests($msg, $errors = [], $headers = [], $forwardUrl = null);
-ResponseHelper::error($msg, $errors = [], $headers = [], $forwardUrl = null);
-ResponseHelper::handleException($exception, $errors = [], $headers = [], $forwardUrl = null);
-```
-
-**Success Responses:**
-
-```php
-ResponseHelper::success($msg, $data = null, $forwardUrl = null);
-ResponseHelper::created($msg, $data = null, $forwardUrl = null);
-ResponseHelper::accepted($msg, $data = null, $forwardUrl = null);
-ResponseHelper::noContent($msg = 'Operation completed successfully', $forwardUrl = null);
-```
+````
 
 #### PaginatorHelper
 
@@ -692,3 +463,4 @@ Example:
   ```sh
   php artisan vendor:publish --tag=equidna:config
   ```
+````

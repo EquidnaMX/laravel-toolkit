@@ -1,6 +1,7 @@
 {
   "name": "equidna/laravel-toolkit",
-  "version": "1.0.2",
+  "description": "Multi-context Laravel helpers, middleware, and utilities.",
+  "version": "1.0.3",
   "type": "library",
   "license": "MIT",
   "authors": [
@@ -11,12 +12,13 @@
   ],
   "require": {
     "php": "^8.0",
-    "illuminate/support": "^11.21 || ^12.0",
     "laravel/framework": "^11.21 || ^12.0",
-    "laravel/helpers": "^1.7"
+    "laravel/helpers": "^1.7",
+    "illuminate/support": "^11.21 || ^12.0"
   },
   "require-dev": {
-    "squizlabs/php_codesniffer": "*"
+    "squizlabs/php_codesniffer": "*",
+    "larastan/larastan": "*"
   },
   "autoload": {
     "psr-4": {

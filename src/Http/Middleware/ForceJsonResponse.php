@@ -1,30 +1,36 @@
 <?php
 
 /**
- * @author Gabriel Ruelas
- * @license MIT
- * @version 1.0.0
- *
+ * Forces downstream responses to negotiate JSON by setting the Accept header.
+ * PHP 8.0+
+ * @package   Equidna\Toolkit\Http\Middleware
+ * @author    Gabriel Ruelas <gruelasjr@gmail.com>
+ * @license   https://opensource.org/licenses/MIT MIT License
+ * @link      https://laravel.com/docs/12.x/middleware#middleware-and-responses Documentation
  */
 
 namespace Equidna\Toolkit\Http\Middleware;
 
-use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Closure;
 
-//This middleware forces the response to be an API response
+/**
+ * Ensures every request downstream of the middleware expects JSON responses.
+ */
 class ForceJsonResponse
 {
     /**
-     * Handle an incoming request and force the Accept header to application/json.
+     * Handles an incoming request while enforcing JSON response negotiation.
      *
-     * @param Request $request The incoming HTTP request.
-     * @param Closure $next The next middleware in the pipeline.
-     * @return Response The response from the next middleware.
+     * @param  Request $request Incoming HTTP request.
+     * @param  Closure $next    Next middleware in the pipeline.
+     * @return Response         Response returned by the next middleware.
      */
-    public function handle(Request $request, Closure $next): Response
-    {
+    public function handle(
+        Request $request,
+        Closure $next,
+    ): Response {
         $request->headers->set('Accept', 'application/json');
 
         return $next($request);
