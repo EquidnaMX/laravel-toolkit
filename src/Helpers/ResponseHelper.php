@@ -113,9 +113,23 @@ class ResponseHelper
 
     private static function sanitizeHeaders(array $headers): array
     {
-        return collect($headers)
-            ->filter(fn($value, $key) => is_string($key) && is_string($value))
-            ->all();
+        $sanitized = collect($headers)
+            ->filter(fn($value, $key) => is_string($key) && is_string($value));
+
+        // Apply allow-list filtering for redirect contexts
+        if (!RouteHelper::wantsJson()) {
+            $allowed = array_map('strtolower', config('equidna.responses.redirect_allowed_headers', []));
+
+            $sanitized = $sanitized->filter(function ($value, $key) use ($allowed) {
+                if (empty($allowed)) {
+                    return false;
+                }
+
+                return in_array(strtolower((string) $key), $allowed, true);
+            });
+        }
+
+        return $sanitized->all();
     }
 
     // SUCCESS RESPONSES
