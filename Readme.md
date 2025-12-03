@@ -2,7 +2,7 @@
 
 > **A modern Laravel package for multi-context, modular application development.**
 
-Equidna Toolkit bundles helpers, middleware, traits, and a service provider that keep responses, validation, and pagination consistent across web, API, hook, IoT, and console entry points. Targeted for Laravel 11 & 12 on PHP 8.0+, it embraces Laravel conventions while abstracting repetitive infrastructure code.
+Equidna Toolkit bundles helpers, middleware, traits, and a service provider that keep responses, validation, and pagination consistent across web, API, hook, IoT, and console entry points. Targeted for Laravel 11 & 12 on PHP 8.2+, it embraces Laravel conventions while abstracting repetitive infrastructure code.
 
 ## 🚀 Highlights
 
@@ -42,7 +42,7 @@ Equidna Toolkit provides helpers, traits, middleware, and a service provider to 
 
 > **A modern Laravel package for multi-context, modular application development.**
 
-Equidna Toolkit provides helpers, traits, middleware, and a service provider to streamline responses and errors across web, API, hooks, and IoT contexts. Designed for Laravel 11 & 12, it enables unified response patterns, context-aware utilities, and advanced exception handling for professional-grade PHP projects.
+Equidna Toolkit provides helpers, traits, middleware, and a service provider to streamline responses and errors across web, API, hooks, and IoT contexts. Designed for Laravel 11 & 12 on PHP 8.2+, it enables unified response patterns, context-aware utilities, and advanced exception handling for professional-grade PHP projects.
 
 ## Key Features
 
@@ -115,7 +115,7 @@ $paginator = PaginatorHelper::buildPaginator($arrayOrCollection, $page, $itemsPe
 
 - Coding Standard: PSR-12 (4-space indent)
 - Static Analysis: PHPStan (`vendor/bin/phpstan analyse`)
-- PHP: 8.0+
+- PHP: 8.2+
 
 ### PHPStan note
 
@@ -344,7 +344,7 @@ return [
 
 - **Coding Standard**: PSR-12, 4-space indent, 250-char line limit, StyleCI (laravel preset)
 - **Static Analysis**: PHPStan (`vendor/bin/phpstan analyse`)
-- **PHP Version**: 8.0+
+- **PHP Version**: 8.2+
 - **No bundled tests**: Please contribute tests if you extend the package!
 
 [!NOTE]
