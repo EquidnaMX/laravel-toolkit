@@ -117,8 +117,8 @@ class ResponseHelper
             ->filter(fn($value, $key) => is_string($key) && is_string($value))
             ->all();
 
-        // Apply allow-list filtering only for redirect responses
-        if ($strategy instanceof RedirectResponseStrategy) {
+        // Apply allow-list filtering if the strategy requires it
+        if ($strategy->requiresHeaderAllowList()) {
             $allowed = array_map('strtolower', config('equidna.responses.redirect_allowed_headers', []));
 
             $sanitized = collect($sanitized)

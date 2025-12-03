@@ -30,6 +30,11 @@ class RedirectResponseStrategy implements ResponseStrategyInterface
             ->withInput();
     }
 
+    public function requiresHeaderAllowList(): bool
+    {
+        return true;
+    }
+
     private function sanitizeErrors(array $errors): array
     {
         $allowedKeys = config('equidna.responses.redirect_allowed_error_fields', []);

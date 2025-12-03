@@ -34,5 +34,10 @@ class JsonResponseStrategy implements ResponseStrategyInterface
 
         return response()->json($response, $status, $headers);
     }
+
+    public function requiresHeaderAllowList(): bool
+    {
+        return false;
+    }
 }
 

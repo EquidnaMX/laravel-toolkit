@@ -33,5 +33,12 @@ interface ResponseStrategyInterface
         array $headers = [],
         ?string $forwardUrl = null
     ): string|JsonResponse|RedirectResponse;
+
+    /**
+     * Determine if this strategy requires allow-list filtering for response headers.
+     *
+     * @return bool True if headers should be filtered by an allow-list, false otherwise.
+     */
+    public function requiresHeaderAllowList(): bool;
 }
 
