@@ -13,13 +13,45 @@ class ConsoleResponseStrategy implements ResponseStrategyInterface
         mixed $data = null,
         array $headers = [],
         ?string $forwardUrl = null
-    ): string {
-        return $message;
+    ): string {   
+        $lines = ["[{$status}] {$message}"];
+
+        if (!empty($errors)) {
+            $lines[] = 'Errors:';
+            $lines[] = $this->stringifyPayload($errors);
+        }
+
+        if ($data !== null) {
+            $lines[] = 'Data:';
+            $lines[] = $this->stringifyPayload($data);
+        }
+
+        if (!empty($headers)) {
+            $lines[] = 'Headers:';
+            $lines[] = $this->stringifyPayload($headers);
+        }
+
+        if ($forwardUrl !== null) {
+            $lines[] = "Forward: {$forwardUrl}";
+        }
+
+        return implode(PHP_EOL, $lines);
     }
 
-    public function requiresHeaderAllowList(): bool
+    private function stringifyPayload(mixed $payload): string
     {
-        return false;
+        if (is_scalar($payload)) {
+            return (string) $payload;
+        }
+
+        $encoded = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+        return $encoded === false ? '[unserializable payload]' : $encoded;
     }
+  
+   public function requiresHeaderAllowList(): bool
+   {
+        return false;
+   }
 }
 

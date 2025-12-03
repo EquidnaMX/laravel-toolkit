@@ -20,7 +20,7 @@ class RedirectResponseStrategy implements ResponseStrategyInterface
 
         return redirect(
             to: $forwardUrl ?? url()->previous(),
-            headers: $headers,
+            headers: $this->sanitizeHeaders($headers),
         )->with(
             [
                 'status'  => $status,
@@ -34,7 +34,23 @@ class RedirectResponseStrategy implements ResponseStrategyInterface
 
     public function requiresHeaderAllowList(): bool
     {
-        return true;
+        return true;        
+    }
+
+    private function sanitizeHeaders(array $headers): array
+    {
+        $allowed = array_map('strtolower', config('equidna.responses.redirect_allowed_headers', []));
+
+        return collect($headers)
+            ->filter(fn($value, $key) => is_string($key) && is_string($value))
+            ->filter(function ($value, $key) use ($allowed) {
+                if (empty($allowed)) {
+                    return false;
+                }
+
+                return in_array(strtolower((string) $key), $allowed, true);
+            })
+            ->all();
     }
 
     private function sanitizeErrors(array $errors): array
