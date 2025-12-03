@@ -32,15 +32,4 @@ class ConfigurableRouteDetector extends AbstractRouteDetector
 
         return $this->matches($request, 'json_matchers') || $request->expectsJson();
     }
-
-    private function matches(Request $request, string $key): bool
-    {
-        $patterns = $this->matchers[$key] ?? [];
-
-        if (empty($patterns)) {
-            return false;
-        }
-
-        return $request->is($patterns);
-    }
 }
