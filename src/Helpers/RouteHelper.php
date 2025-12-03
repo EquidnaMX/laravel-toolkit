@@ -11,15 +11,21 @@
 
 namespace Equidna\Toolkit\Helpers;
 
+use Equidna\Toolkit\Contracts\RequestResolverInterface;
+use Equidna\Toolkit\Contracts\RouteDetectorInterface;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Exception;
 
 /**
  * Offers utilities for identifying the current request channel or format.
  */
 class RouteHelper
 {
+    private static ?RouteDetectorInterface $detector = null;
+
+    private static ?RequestResolverInterface $requestResolver = null;
+
     /**
      * Determines whether the application executes within the console.
      *
@@ -55,13 +61,13 @@ class RouteHelper
             return false;
         }
 
-        $firstSegment = self::getRequest()?->segment(1);
+        $request = self::getRequest();
 
-        if (is_null($firstSegment)) {
+        if (is_null($request)) {
             return false;
         }
 
-        return preg_match('/^(api|.*-api|api-.*)$/i', $firstSegment) === 1;
+        return self::getDetector()->isApi($request);
     }
 
     /**
@@ -75,7 +81,13 @@ class RouteHelper
             return false;
         }
 
-        return self::getRequest()?->is('hooks/*') ?? false;
+        $request = self::getRequest();
+
+        if (is_null($request)) {
+            return false;
+        }
+
+        return self::getDetector()->isHook($request);
     }
 
     /**
@@ -89,7 +101,13 @@ class RouteHelper
             return false;
         }
 
-        return self::getRequest()?->is('iot/*') ?? false;
+        $request = self::getRequest();
+
+        if (is_null($request)) {
+            return false;
+        }
+
+        return self::getDetector()->isIoT($request);
     }
 
     /**
@@ -118,10 +136,13 @@ class RouteHelper
             return false;
         }
 
-        return self::isApi()
-            || self::isHook()
-            || self::isIoT()
-            || (self::getRequest()?->expectsJson() ?? false);
+        $request = self::getRequest();
+
+        if (is_null($request)) {
+            return false;
+        }
+
+        return self::getDetector()->wantsJson($request);
     }
 
     /**
@@ -202,12 +223,20 @@ class RouteHelper
      */
     private static function getRequest(): ?Request
     {
-        if (!app()->bound('request')) {
-            return null;
-        }
+        return self::getRequestResolver()->resolve();
+    }
 
-        $request = request();
+    private static function getDetector(): RouteDetectorInterface
+    {
+        self::$detector ??= app()->make(RouteDetectorInterface::class);
 
-        return $request instanceof Request ? $request : null;
+        return self::$detector;
+    }
+
+    private static function getRequestResolver(): RequestResolverInterface
+    {
+        self::$requestResolver ??= app()->make(RequestResolverInterface::class);
+
+        return self::$requestResolver;
     }
 }
