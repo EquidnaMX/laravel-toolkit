@@ -91,7 +91,7 @@ class ResponseHelper
 
     private static function sanitizeMessage(int $status, string $message): string
     {
-        $includeDebug = config('equidna.responses.include_debug_details', config('app.debug', false));
+        $includeDebug = config('app.debug', false);
 
         if ($status >= self::HTTP_INTERNAL_SERVER_ERROR && !$includeDebug) {
             return 'An unexpected error occurred.';
@@ -102,7 +102,7 @@ class ResponseHelper
 
     private static function sanitizeErrors(int $status, array $errors): array
     {
-        $includeDebug = config('equidna.responses.include_debug_details', config('app.debug', false));
+        $includeDebug = config('app.debug', false);
 
         if ($status >= self::HTTP_INTERNAL_SERVER_ERROR && !$includeDebug) {
             return [];

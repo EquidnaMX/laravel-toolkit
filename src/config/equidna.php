@@ -13,7 +13,6 @@ return [
         'request_resolver' => '',
     ],
     'responses' => [
-        'include_debug_details' => env('EQUIDNA_RESPONSES_INCLUDE_DEBUG', env('APP_DEBUG', false)),
         'redirect_allowed_headers' => [
             'Cache-Control',
             'Retry-After',
