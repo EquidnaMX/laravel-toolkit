@@ -220,7 +220,6 @@ PaginatorHelper::setFullURL(LengthAwarePaginator $paginator): void
 - **ExcludeFromHistory**: Prevents the current request from being stored in the session as the current URL.
 - **ForceJsonResponse**: Forces the response to be JSON (sets `Accept: application/json`).
 - **DisableDebugbar**: Disables the Laravel Debugbar for the current request if it is bound in the container.
-- **ForceApiResponse**: (Deprecated) Use `ForceJsonResponse` instead.
 
 **DisableDebugbar Usage Example:**
 
