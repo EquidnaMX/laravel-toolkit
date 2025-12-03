@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Equidna\Toolkit\Tests;
 
+use Equidna\Toolkit\Contracts\PaginationStrategyInterface;
 use Equidna\Toolkit\Contracts\RequestResolverInterface;
 use Equidna\Toolkit\Contracts\RouteDetectorInterface;
 use Equidna\Toolkit\Helpers\Detectors\ConfigurableRouteDetector;
 use Equidna\Toolkit\Helpers\Request\LaravelRequestResolver;
+use Equidna\Toolkit\Services\Pagination\DefaultPaginationStrategy;
 use Equidna\Toolkit\Tests\Support\FakeApplication;
 use Equidna\Toolkit\Tests\Support\FakeRedirector;
 use Equidna\Toolkit\Tests\Support\FakeResponseFactory;
@@ -48,6 +50,11 @@ abstract class TestCase extends BaseTestCase
         $this->app->singleton(
             RequestResolverInterface::class,
             fn($app) => new LaravelRequestResolver($app),
+        );
+
+        $this->app->singleton(
+            PaginationStrategyInterface::class,
+            DefaultPaginationStrategy::class,
         );
     }
 
