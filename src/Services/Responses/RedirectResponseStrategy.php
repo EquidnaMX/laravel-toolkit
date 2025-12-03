@@ -16,6 +16,8 @@ class RedirectResponseStrategy implements ResponseStrategyInterface
         array $headers = [],
         ?string $forwardUrl = null
     ): RedirectResponse {
+        $sanitizedErrors = $this->sanitizeErrors($errors);
+
         return redirect(
             to: $forwardUrl ?? url()->previous(),
             headers: $headers,
@@ -23,10 +25,10 @@ class RedirectResponseStrategy implements ResponseStrategyInterface
             [
                 'status'  => $status,
                 'message' => $message,
-                'errors'  => $this->sanitizeErrors($errors),
+                'errors'  => $sanitizedErrors,
                 'data'    => $data,
             ]
-        )->withErrors($this->sanitizeErrors($errors))
+        )->withErrors($sanitizedErrors)
             ->withInput();
     }
 
