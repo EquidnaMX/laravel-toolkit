@@ -119,7 +119,7 @@ class ResponseHelper
 
         // Apply allow-list filtering if the strategy requires it
         if ($strategy->requiresHeaderAllowList()) {
-            $allowed = array_map('strtolower', config('equidna.responses.redirect_allowed_headers', []));
+            $allowed = array_map('strtolower', config('equidna.responses.allowed_headers', []));
 
             $sanitized = collect($sanitized)
                 ->filter(function ($value, $key) use ($allowed) {

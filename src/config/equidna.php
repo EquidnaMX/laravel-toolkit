@@ -13,7 +13,7 @@ return [
         'request_resolver' => '',
     ],
     'responses' => [
-        'redirect_allowed_headers' => [
+        'allowed_headers' => [
             'Cache-Control',
             'Retry-After',
         ],
