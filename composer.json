@@ -18,11 +18,17 @@
   },
   "require-dev": {
     "squizlabs/php_codesniffer": "*",
-    "larastan/larastan": "*"
+    "larastan/larastan": "*",
+    "phpunit/phpunit": "^9.6"
   },
   "autoload": {
     "psr-4": {
       "Equidna\\Toolkit\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Equidna\\Toolkit\\Tests\\": "tests/"
     }
   },
   "extra": {
