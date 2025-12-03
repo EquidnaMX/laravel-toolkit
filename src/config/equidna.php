@@ -3,6 +3,7 @@
 return [
     'paginator' => [
         'page_items' => 15,
+        'strategy' => '',
     ],
     'route' => [
         'api_matchers' => ['api*', '*-api*'],
@@ -16,6 +17,11 @@ return [
         'allowed_headers' => [
             'Cache-Control',
             'Retry-After',
+        ],
+        'strategies' => [
+            'console' => '',
+            'json' => '',
+            'redirect' => '',
         ],
     ],
 ];

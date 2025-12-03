@@ -16,10 +16,15 @@ namespace Equidna\Toolkit\Providers;
 use Equidna\Toolkit\Exceptions\BadRequestException;
 use Equidna\Toolkit\Exceptions\ConflictException;
 use Equidna\Toolkit\Exceptions\ForbiddenException;
+use Equidna\Toolkit\Contracts\PaginationStrategyInterface;
 use Equidna\Toolkit\Contracts\RequestResolverInterface;
 use Equidna\Toolkit\Contracts\RouteDetectorInterface;
 use Equidna\Toolkit\Helpers\Detectors\ConfigurableRouteDetector;
 use Equidna\Toolkit\Helpers\Request\LaravelRequestResolver;
+use Equidna\Toolkit\Services\Pagination\DefaultPaginationStrategy;
+use Equidna\Toolkit\Services\Responses\ConsoleResponseStrategy;
+use Equidna\Toolkit\Services\Responses\JsonResponseStrategy;
+use Equidna\Toolkit\Services\Responses\RedirectResponseStrategy;
 use Equidna\Toolkit\Exceptions\NotAcceptableException;
 use Equidna\Toolkit\Exceptions\NotFoundException;
 use Equidna\Toolkit\Exceptions\TooManyRequestsException;
@@ -42,6 +47,8 @@ class EquidnaLaravelToolkitServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerRequestResolver();
         $this->registerRouteDetector();
+        $this->registerPaginationStrategy();
+        $this->registerResponseStrategies();
     }
 
     /**
@@ -113,6 +120,52 @@ class EquidnaLaravelToolkitServiceProvider extends ServiceProvider
         }
 
         return $resolverClass;
+    }
+
+    /**
+     * Bind the configured pagination strategy into the container.
+     */
+    protected function registerPaginationStrategy(): void
+    {
+        $this->app->singleton(
+            PaginationStrategyInterface::class,
+            function ($app) {
+                $strategyClass = config('equidna.paginator.strategy');
+
+                if (empty($strategyClass)) {
+                    $strategyClass = DefaultPaginationStrategy::class;
+                    config(['equidna.paginator.strategy' => $strategyClass]);
+                }
+
+                return $app->make($strategyClass);
+            },
+        );
+    }
+
+    /**
+     * Register response strategy bindings for each execution context.
+     */
+    protected function registerResponseStrategies(): void
+    {
+        $strategies = config('equidna.responses.strategies', []);
+
+        $strategies = array_merge(
+            [
+                'console' => ConsoleResponseStrategy::class,
+                'json' => JsonResponseStrategy::class,
+                'redirect' => RedirectResponseStrategy::class,
+            ],
+            array_filter($strategies),
+        );
+
+        config(['equidna.responses.strategies' => $strategies]);
+
+        foreach ($strategies as $key => $class) {
+            $this->app->singleton(
+                "equidna.responses.{$key}_strategy",
+                fn($app) => $app->make($class),
+            );
+        }
     }
 
     /**

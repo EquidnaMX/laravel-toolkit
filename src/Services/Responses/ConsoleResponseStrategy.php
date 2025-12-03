@@ -2,9 +2,7 @@
 
 namespace Equidna\Toolkit\Services\Responses;
 
-use Equidna\Toolkit\Contracts\ResponseStrategyInterface;
-
-class ConsoleResponseStrategy implements ResponseStrategyInterface
+class ConsoleResponseStrategy extends AbstractResponseStrategy
 {
     public function respond(
         int $status,
@@ -48,10 +46,5 @@ class ConsoleResponseStrategy implements ResponseStrategyInterface
 
         return $encoded === false ? '[unserializable payload]' : $encoded;
     }
-  
-   public function requiresHeaderAllowList(): bool
-   {
-        return false;
-   }
 }
 

@@ -14,9 +14,6 @@
 namespace Equidna\Toolkit\Helpers;
 
 use Equidna\Toolkit\Contracts\ResponseStrategyInterface;
-use Equidna\Toolkit\Services\Responses\ConsoleResponseStrategy;
-use Equidna\Toolkit\Services\Responses\JsonResponseStrategy;
-use Equidna\Toolkit\Services\Responses\RedirectResponseStrategy;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -78,15 +75,29 @@ class ResponseHelper
 
     private static function resolveStrategy(): ResponseStrategyInterface
     {
+        $strategies = config('equidna.responses.strategies', []);
+
+        $key = 'redirect';
+
         if (RouteHelper::isConsole()) {
-            return new ConsoleResponseStrategy();
+            $key = 'console';
+        } elseif (RouteHelper::wantsJson()) {
+            $key = 'json';
         }
 
-        if (RouteHelper::wantsJson()) {
-            return new JsonResponseStrategy();
+        $class = $strategies[$key] ?? $strategies['redirect'] ?? null;
+
+        if (empty($class)) {
+            throw new Exception('No response strategy configured for key: ' . $key);
         }
 
-        return new RedirectResponseStrategy();
+        $binding = "equidna.responses.{$key}_strategy";
+
+        if (app()->bound($binding)) {
+            return app()->make($binding);
+        }
+
+        return app()->make($class);
     }
 
     private static function sanitizeMessage(int $status, string $message): string

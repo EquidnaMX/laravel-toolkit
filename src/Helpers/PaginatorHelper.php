@@ -11,6 +11,7 @@
 
 namespace Equidna\Toolkit\Helpers;
 
+use Equidna\Toolkit\Contracts\PaginationStrategyInterface;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Http\Request;
@@ -23,14 +24,6 @@ use Illuminate\Support\Collection;
  */
 class PaginatorHelper
 {
-    public const EXCLUDE_FROM_REQUEST = [
-        '_token',
-        'page',
-        'client_user',
-        'client_token',
-        'client_token_type',
-    ];
-
     /**
      * Builds a paginator instance backed by an array or collection.
      *
@@ -49,39 +42,12 @@ class PaginatorHelper
         ?int $items_per_page = null,
         bool $set_full_url = false,
     ): LengthAwarePaginator {
-        if ($data instanceof LengthAwarePaginator) {
-            if ($set_full_url) {
-                static::setFullURL($data);
-            }
-
-            return $data;
-        }
-
-        if ($data instanceof QueryBuilder || $data instanceof EloquentBuilder) {
-            return static::paginateLengthAware($data, $page, 'page', $items_per_page, $set_full_url);
-        }
-
-        $data = is_array($data) ? collect($data) : $data;
-
-        $paginationLength = $items_per_page ?: config('equidna.paginator.page_items');
-
-        $currentPage = $page ?: 1;
-
-        $paginator = new LengthAwarePaginator(
-            $data->forPage(
-                (int) $currentPage,
-                $paginationLength,
-            ),
-            $data->count(),
-            $paginationLength,
-            (int) $currentPage,
+        return self::resolveStrategy()->buildPaginator(
+            data: $data,
+            page: $page,
+            itemsPerPage: $items_per_page,
+            setFullUrl: $set_full_url,
         );
-
-        if ($set_full_url) {
-            static::setFullURL($paginator);
-        }
-
-        return $paginator;
     }
 
     /**
@@ -103,23 +69,14 @@ class PaginatorHelper
         bool $set_full_url = false,
         ?callable $transformation = null,
     ): LengthAwarePaginator {
-        $paginationLength = $items_per_page ?: config('equidna.paginator.page_items');
-        $paginator = $query->paginate(
-            $paginationLength,
-            ['*'],
-            $pageName,
-            $page ?: 1,
+        return self::resolveStrategy()->paginateLengthAware(
+            query: $query,
+            page: $page,
+            pageName: $pageName,
+            itemsPerPage: $items_per_page,
+            setFullUrl: $set_full_url,
+            transformation: $transformation,
         );
-
-        if (!is_null($transformation)) {
-            $paginator->through($transformation);
-        }
-
-        if ($set_full_url) {
-            static::setFullURL($paginator);
-        }
-
-        return $paginator;
     }
 
     /**
@@ -142,22 +99,13 @@ class PaginatorHelper
         bool $set_full_url = false,
         ?callable $transformation = null,
     ): CursorPaginator {
-        $paginationLength = $items_per_page ?: config('equidna.paginator.page_items');
-        $paginator = $query->cursorPaginate(
-            $paginationLength,
-            ['*'],
-            $cursorName,
+        return self::resolveStrategy()->paginateCursor(
+            query: $query,
+            itemsPerPage: $items_per_page,
+            cursorName: $cursorName,
+            setFullUrl: $set_full_url,
+            transformation: $transformation,
         );
-
-        if (!is_null($transformation)) {
-            $paginator->through($transformation);
-        }
-
-        if ($set_full_url) {
-            static::setFullURL($paginator);
-        }
-
-        return $paginator;
     }
 
     /**
@@ -169,7 +117,7 @@ class PaginatorHelper
      */
     public static function appendCleanedRequest(CursorPaginator|LengthAwarePaginator $paginator, Request $request): void
     {
-        $paginator->appends($request->except(static::EXCLUDE_FROM_REQUEST));
+        self::resolveStrategy()->appendCleanedRequest($paginator, $request);
     }
 
     /**
@@ -180,6 +128,11 @@ class PaginatorHelper
      */
     public static function setFullURL(CursorPaginator|LengthAwarePaginator $paginator): void
     {
-        $paginator->setPath(url()->current());
+        self::resolveStrategy()->setFullURL($paginator);
+    }
+
+    private static function resolveStrategy(): PaginationStrategyInterface
+    {
+        return app()->make(PaginationStrategyInterface::class);
     }
 }
