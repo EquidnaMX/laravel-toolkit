@@ -16,5 +16,10 @@ class ConsoleResponseStrategy implements ResponseStrategyInterface
     ): string {
         return $message;
     }
+
+    public function requiresHeaderAllowList(): bool
+    {
+        return false;
+    }
 }
 
