@@ -28,7 +28,7 @@ class JsonResponseStrategy implements ResponseStrategyInterface
             $response['data'] = $data;
         }
 
-        if ($status >= 400) {
+        if ($status >= 400 && !empty($errors)) {
             $response['errors'] = $errors;
         }
 
