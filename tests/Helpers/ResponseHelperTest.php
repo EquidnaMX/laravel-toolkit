@@ -44,13 +44,12 @@ class ResponseHelperTest extends TestCase
         ], $response->getData(true));
     }
 
-    public function test_redirect_strategy_filters_headers_and_errors(): void
+    public function test_redirect_strategy_filters_headers(): void
     {
         $this->app->setRunningInConsole(false);
         $request = Request::create('/web/example', 'GET');
         $this->app->instance('request', $request);
-        $this->config->set('equidna.responses.redirect_allowed_headers', ['Retry-After']);
-        $this->config->set('equidna.responses.redirect_allowed_error_fields', ['message']);
+        $this->config->set('equidna.responses.allowed_headers', ['Retry-After']);
         $this->app->singleton(
             \Equidna\Toolkit\Contracts\RouteDetectorInterface::class,
             fn() => new FakeRouteDetector(),
@@ -74,10 +73,16 @@ class ResponseHelperTest extends TestCase
         $this->assertSame([
             'status' => ResponseHelper::HTTP_FORBIDDEN,
             'message' => 'Blocked',
-            'errors' => ['message' => 'Not allowed'],
+            'errors' => [
+                'message' => 'Not allowed',
+                'debug' => 'trace',
+            ],
             'data' => null,
         ], $response->session);
-        $this->assertSame(['message' => 'Not allowed'], $response->errors);
+        $this->assertSame([
+            'message' => 'Not allowed',
+            'debug' => 'trace',
+        ], $response->errors);
         $this->assertTrue($response->input);
         $this->assertSame(['Retry-After' => '30'], $response->headers);
     }
