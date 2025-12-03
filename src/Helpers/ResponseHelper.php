@@ -13,6 +13,10 @@
 
 namespace Equidna\Toolkit\Helpers;
 
+use Equidna\Toolkit\Contracts\ResponseStrategyInterface;
+use Equidna\Toolkit\Services\Responses\ConsoleResponseStrategy;
+use Equidna\Toolkit\Services\Responses\JsonResponseStrategy;
+use Equidna\Toolkit\Services\Responses\RedirectResponseStrategy;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -56,76 +60,62 @@ class ResponseHelper
         array $headers = [],
         ?string $forward_url = null
     ): string|JsonResponse|RedirectResponse {
+        $strategy = self::resolveStrategy();
+
+        $sanitizedMessage = self::sanitizeMessage($status, $message);
+        $sanitizedErrors  = self::sanitizeErrors($status, $errors);
+        $sanitizedHeaders = self::sanitizeHeaders($headers);
+
+        return $strategy->respond(
+            status: $status,
+            message: $sanitizedMessage,
+            errors: $sanitizedErrors,
+            data: $data,
+            headers: $sanitizedHeaders,
+            forwardUrl: $forward_url,
+        );
+    }
+
+    private static function resolveStrategy(): ResponseStrategyInterface
+    {
         if (RouteHelper::isConsole()) {
-            return $message;
+            return new ConsoleResponseStrategy();
         }
 
         if (RouteHelper::wantsJson()) {
-            return self::generateJsonResponse(
-                status: $status,
-                message: $message,
-                errors: $errors,
-                data: $data,
-                headers: $headers,
-            );
+            return new JsonResponseStrategy();
         }
 
-        return redirect(
-            to: $forward_url ?? url()->previous(),
-            headers: $headers,
-        )->with(
-            [
-                'status'  => $status,
-                'message' => $message,
-                'errors'  => $errors,
-                'data'    => $data,
-            ]
-        )->withErrors($errors)
-            ->withInput();
+        return new RedirectResponseStrategy();
     }
 
-    /**
-     * Builds a JSON response structure that mirrors Laravel's default API shape.
-     *
-     * @param  int                              $status    HTTP status code.
-     * @param  string                           $message   Text describing the operation outcome.
-     * @param  array<int|string, mixed>         $errors    Error bag persisted for failing responses.
-     * @param  mixed                            $data      Optional payload returned to the consumer.
-     * @param  array<string, string>            $headers   Extra headers applied to the JSON response.
-     * @return JsonResponse
-     */
-    private static function generateJsonResponse(
-        int $status,
-        string $message,
-        array $errors = [],
-        mixed $data = null,
-        array $headers = []
-    ): JsonResponse {
-        if ($status === self::HTTP_NO_CONTENT) {
-            return response()->json(null, $status, $headers);
+    private static function sanitizeMessage(int $status, string $message): string
+    {
+        $includeDebug = config('app.debug', false);
+
+        if ($status >= self::HTTP_INTERNAL_SERVER_ERROR && !$includeDebug) {
+            return 'An unexpected error occurred.';
         }
 
-        $response = [
-            'status'  => $status,
-            'message' => $message,
-        ];
+        return $message;
+    }
 
-        // Add data to response if provided
-        if ($data !== null) {
-            $response['data'] = $data;
+    private static function sanitizeErrors(int $status, array $errors): array
+    {
+        $includeDebug = config('app.debug', false);
+
+        if ($status >= self::HTTP_INTERNAL_SERVER_ERROR && !$includeDebug) {
+            return [];
         }
 
-        // Add errors to response
-        if ($status >= 400) {
-            $response['errors'] = $errors;
-        }
+        return $errors;
+    }
 
-        return response()
-            ->json(
-                $response,
-                $status,
-                $headers,
-            );
+    private static function sanitizeHeaders(array $headers): array
+    {
+        return collect($headers)
+            ->filter(fn($value, $key) => is_string($key) && is_string($value))
+            ->all();
     }
 
     // SUCCESS RESPONSES
