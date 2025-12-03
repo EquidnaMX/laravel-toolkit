@@ -17,6 +17,5 @@ return [
             'Cache-Control',
             'Retry-After',
         ],
-        'redirect_allowed_error_fields' => ['message'],
     ],
 ];
