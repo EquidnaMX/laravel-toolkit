@@ -2,11 +2,10 @@
 
 namespace Equidna\Toolkit\Services\Responses;
 
-use Equidna\Toolkit\Contracts\ResponseStrategyInterface;
 use Equidna\Toolkit\Helpers\ResponseHelper;
 use Illuminate\Http\JsonResponse;
 
-class JsonResponseStrategy implements ResponseStrategyInterface
+class JsonResponseStrategy extends AbstractResponseStrategy
 {
     public function respond(
         int $status,
@@ -29,16 +28,11 @@ class JsonResponseStrategy implements ResponseStrategyInterface
             $response['data'] = $data;
         }
 
-        if ($status >= ResponseHelper::BadRequest && !empty($errors)) {
+        if ($status >= ResponseHelper::HTTP_BAD_REQUEST && !empty($errors)) {
             $response['errors'] = $errors;
         }
 
         return response()->json($response, $status, $headers);
-    }
-
-    public function requiresHeaderAllowList(): bool
-    {
-        return false;
     }
 }
 

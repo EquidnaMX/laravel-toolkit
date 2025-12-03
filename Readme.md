@@ -133,6 +133,7 @@ Default config (`config/equidna.php`):
 return [
     'paginator' => [
         'page_items' => 15,
+        'strategy' => '',
     ],
     'route' => [
         'api_matchers' => ['api*', '*-api*'],
@@ -142,10 +143,73 @@ return [
         'detector' => '',
         'request_resolver' => '',
     ],
+    'responses' => [
+        'allowed_headers' => [
+            'Cache-Control',
+            'Retry-After',
+        ],
+        'strategies' => [
+            'console' => '',
+            'json' => '',
+            'redirect' => '',
+        ],
+    ],
 ];
 ```
 
-Customize the `api_matchers`, `hook_matchers`, and `iot_matchers` arrays to reflect your route prefixes or namespaces. Matchers are passed directly to Laravel's `Request::is()` for flexible glob matching (e.g., `services/api/*`).
+ Customize the `api_matchers`, `hook_matchers`, and `iot_matchers` arrays to reflect your route prefixes or namespaces. Matchers are passed directly to Laravel's `Request::is()` for flexible glob matching (e.g., `services/api/*`).
+
+### Swap strategies for org-specific policies
+
+Use container-configurable strategies to override toolkit behavior without editing package code:
+
+```php
+// config/equidna.php
+return [
+    'route' => [
+        'detector' => App\Routing\SubdomainRouteDetector::class,
+    ],
+    'responses' => [
+        'strategies' => [
+            'json' => App\Http\Responses\AuditJsonResponse::class,
+            'redirect' => App\Http\Responses\SafeRedirectResponse::class,
+        ],
+    ],
+    'paginator' => [
+        'strategy' => App\Support\Pagination\TenantPaginationStrategy::class,
+    ],
+];
+```
+
+Implementations can extend the provided abstract classes for shared helpers:
+
+```php
+use Equidna\Toolkit\Helpers\Detectors\AbstractRouteDetector;
+use Equidna\Toolkit\Services\Responses\AbstractResponseStrategy;
+use Equidna\Toolkit\Services\Pagination\AbstractPaginationStrategy;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+class SubdomainRouteDetector extends AbstractRouteDetector
+{
+    public function isApi(Request $request): bool { return $this->matches($request, 'api_matchers'); }
+    public function isHook(Request $request): bool { /* ... */ }
+    public function isIoT(Request $request): bool { /* ... */ }
+}
+
+class AuditJsonResponse extends AbstractResponseStrategy
+{
+    public function respond(int $status, string $message, array $errors = [], mixed $data = null, array $headers = [], ?string $forwardUrl = null): JsonResponse
+    {
+        // add audit metadata before returning JSON
+    }
+}
+
+class TenantPaginationStrategy extends AbstractPaginationStrategy
+{
+    // override resolveItemsPerPage or paginateLengthAware to enforce tenant defaults
+}
+```
 
 ### Custom route detector
 

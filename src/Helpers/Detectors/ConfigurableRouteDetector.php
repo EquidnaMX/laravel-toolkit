@@ -2,27 +2,13 @@
 
 namespace Equidna\Toolkit\Helpers\Detectors;
 
-use Equidna\Toolkit\Contracts\RouteDetectorInterface;
 use Illuminate\Http\Request;
 
 /**
  * Detects route contexts based on configurable matchers.
  */
-class ConfigurableRouteDetector implements RouteDetectorInterface
+class ConfigurableRouteDetector extends AbstractRouteDetector
 {
-    /**
-     * @var array<string, array<int, string>>
-     */
-    private array $matchers;
-
-    /**
-     * @param array<string, array<int, string>> $matchers
-     */
-    public function __construct(array $matchers = [])
-    {
-        $this->matchers = $matchers;
-    }
-
     public function isApi(Request $request): bool
     {
         return $this->matches($request, 'api_matchers');

@@ -2,11 +2,15 @@
 
 namespace Equidna\Toolkit\Services\Responses;
 
-use Equidna\Toolkit\Contracts\ResponseStrategyInterface;
 use Illuminate\Http\RedirectResponse;
 
-class RedirectResponseStrategy implements ResponseStrategyInterface
+class RedirectResponseStrategy extends AbstractResponseStrategy
 {
+    public function __construct()
+    {
+        parent::__construct(true);
+    }
+
     public function respond(
         int $status,
         string $message,
@@ -29,14 +33,9 @@ class RedirectResponseStrategy implements ResponseStrategyInterface
             ->withInput();
     }
 
-    public function requiresHeaderAllowList(): bool
-    {
-        return true;        
-    }
-
     private function sanitizeHeaders(array $headers): array
     {
-        $allowed = array_map('strtolower', config('equidna.responses.redirect_allowed_headers', []));
+        $allowed = array_map('strtolower', config('equidna.responses.allowed_headers', []));
 
         return collect($headers)
             ->filter(fn($value, $key) => is_string($key) && is_string($value))
