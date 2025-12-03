@@ -13,6 +13,12 @@ Equidna Toolkit bundles helpers, middleware, traits, and a service provider that
 - **Pluggable middleware** – Opt-in layers for forcing JSON, clearing session history, and disabling Debugbar.
 - **Composite key trait** – Handle multi-column primary keys without reimplementing boilerplate.
 
+## ✅ Compatibility
+
+- **PHP:** 8.2 and 8.3 (validated in CI).
+- **Laravel:** 11.x and 12.x (via `laravel/framework` and `illuminate/support` constraints).
+- **Composer:** 2.5+ recommended to use `composer audit` during local development.
+
 ## 📦 Installation
 
 ```bash
@@ -115,7 +121,19 @@ $paginator = PaginatorHelper::buildPaginator($arrayOrCollection, $page, $itemsPe
 
 - Coding Standard: PSR-12 (4-space indent)
 - Static Analysis: PHPStan (`vendor/bin/phpstan analyse`)
-- PHP: 8.2+
+- PHP: 8.2–8.3
+
+### Release hygiene
+
+- Keep `CHANGELOG.md` updated for every user-facing change and reset the `Unreleased` section when tagging.
+- Align the package version in `composer.json` with the release tag and changelog entry.
+- Run `composer audit --locked` (and `--no-dev`), `vendor/bin/phpunit`, `vendor/bin/phpstan analyse -c phpstan.neon`, and `vendor/bin/phpcs --standard=ruleset.xml` before publishing.
+
+## License & compliance
+
+- **License:** MIT (see [`LICENSE`](LICENSE)).
+- **Dependencies:** Laravel Framework, Illuminate Support, and Laravel Helpers—all MIT licensed.
+- **Packaging:** Ships as a Composer library with no bundled telemetry or proprietary services.
 
 ### PHPStan note
 

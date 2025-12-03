@@ -25,6 +25,12 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
 
+      - name: Run Composer audit
+        run: composer audit --locked
+
+      - name: Check security advisories (runtime)
+        run: composer audit --locked --no-dev
+
       - name: Run PHPUnit
         run: vendor/bin/phpunit
 
