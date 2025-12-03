@@ -13,7 +13,7 @@ class ConsoleResponseStrategy implements ResponseStrategyInterface
         mixed $data = null,
         array $headers = [],
         ?string $forwardUrl = null
-    ): string {
+    ): string {   
         $lines = ["[{$status}] {$message}"];
 
         if (!empty($errors)) {
@@ -48,5 +48,10 @@ class ConsoleResponseStrategy implements ResponseStrategyInterface
 
         return $encoded === false ? '[unserializable payload]' : $encoded;
     }
+  
+   public function requiresHeaderAllowList(): bool
+   {
+        return false;
+   }
 }
 

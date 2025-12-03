@@ -64,7 +64,7 @@ class ResponseHelper
 
         $sanitizedMessage = self::sanitizeMessage($status, $message);
         $sanitizedErrors  = self::sanitizeErrors($status, $errors);
-        $sanitizedHeaders = self::sanitizeHeaders($headers);
+        $sanitizedHeaders = self::sanitizeHeaders($headers, $strategy);
 
         return $strategy->respond(
             status: $status,
@@ -111,11 +111,28 @@ class ResponseHelper
         return $errors;
     }
 
-    private static function sanitizeHeaders(array $headers): array
+    private static function sanitizeHeaders(array $headers, ResponseStrategyInterface $strategy): array
     {
-        return collect($headers)
+        $sanitized = collect($headers)
             ->filter(fn($value, $key) => is_string($key) && is_string($value))
             ->all();
+
+        // Apply allow-list filtering if the strategy requires it
+        if ($strategy->requiresHeaderAllowList()) {
+            $allowed = array_map('strtolower', config('equidna.responses.allowed_headers', []));
+
+            $sanitized = collect($sanitized)
+                ->filter(function ($value, $key) use ($allowed) {
+                    if (empty($allowed)) {
+                        return false;
+                    }
+
+                    return in_array(strtolower((string) $key), $allowed, true);
+                })
+                ->all();
+        }
+
+        return $sanitized;
     }
 
     // SUCCESS RESPONSES
