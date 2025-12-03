@@ -12,4 +12,11 @@ return [
         'detector' => '',
         'request_resolver' => '',
     ],
+    'responses' => [
+        'redirect_allowed_headers' => [
+            'Cache-Control',
+            'Retry-After',
+        ],
+        'redirect_allowed_error_fields' => ['message'],
+    ],
 ];
