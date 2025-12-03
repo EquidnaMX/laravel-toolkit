@@ -134,8 +134,61 @@ return [
     'paginator' => [
         'page_items' => 15,
     ],
+    'route' => [
+        'api_matchers' => ['api*', '*-api*'],
+        'hook_matchers' => ['hooks/*'],
+        'iot_matchers' => ['iot/*'],
+        'json_matchers' => [],
+        'detector' => '',
+        'request_resolver' => '',
+    ],
 ];
 ```
+
+Customize the `api_matchers`, `hook_matchers`, and `iot_matchers` arrays to reflect your route prefixes or namespaces. Matchers are passed directly to Laravel's `Request::is()` for flexible glob matching (e.g., `services/api/*`).
+
+### Custom route detector
+
+`RouteHelper` now resolves a detector and request resolver from the container, letting you plug in bespoke logic while avoiding global request helpers. To register a custom detector, implement `Equidna\Toolkit\Contracts\RouteDetectorInterface`:
+
+```php
+use Equidna\Toolkit\Contracts\RouteDetectorInterface;
+use Illuminate\Http\Request;
+
+class SubdomainRouteDetector implements RouteDetectorInterface
+{
+    public function isApi(Request $request): bool
+    {
+        return $request->getHost() === 'api.example.test';
+    }
+
+    public function isHook(Request $request): bool
+    {
+        return $request->is('hooks/*');
+    }
+
+    public function isIoT(Request $request): bool
+    {
+        return $request->is('iot/*');
+    }
+
+    public function wantsJson(Request $request): bool
+    {
+        return $this->isApi($request) || $request->expectsJson();
+    }
+}
+```
+
+Bind it by updating `config/equidna.php` (the service provider fills in defaults when these are omitted):
+
+```php
+'route' => [
+    // ...matchers...
+    'detector' => SubdomainRouteDetector::class, // Fully qualified class name
+],
+```
+
+You can also replace the request resolver by implementing `Equidna\Toolkit\Contracts\RequestResolverInterface` and pointing `route.request_resolver` to your class (also as a fully qualified class name).
 
 ## Response JSON shapes
 
@@ -274,6 +327,14 @@ Default config (`config/equidna.php`):
 return [
     'paginator' => [
         'page_items' => 15,
+    ],
+    'route' => [
+        'api_matchers' => ['api*', '*-api*'],
+        'hook_matchers' => ['hooks/*'],
+        'iot_matchers' => ['iot/*'],
+        'json_matchers' => [],
+        'detector' => '',
+        'request_resolver' => '',
     ],
 ];
 ```
