@@ -5,12 +5,11 @@ on:
   pull_request:
 
 jobs:
-  build:
+  tests:
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix:
-        php: ["8.2", "8.3"]
+        php-version: ['8.2', '8.3']
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -18,18 +17,12 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php }}
-          extensions: mbstring, intl
-          coverage: none
+          php-version: ${{ matrix.php-version }}
+          tools: composer
+          extensions: mbstring, dom, json
 
       - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist
-
-      - name: Run Composer audit
-        run: composer audit --locked
-
-      - name: Check security advisories (runtime)
-        run: composer audit --locked --no-dev
+        run: composer install --no-interaction --prefer-dist --no-progress
 
       - name: Run PHPUnit
         run: vendor/bin/phpunit
@@ -39,3 +32,6 @@ jobs:
 
       - name: Run PHPCS
         run: vendor/bin/phpcs --standard=ruleset.xml
+
+      - name: Run Composer audit
+        run: composer audit --locked

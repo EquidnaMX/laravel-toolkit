@@ -1,5 +1,7 @@
 # Equidna Toolkit v1.0.3
 
+![CI status](https://github.com/EquidnaMX/laravel-toolkit/actions/workflows/ci.yml/badge.svg)
+
 > **A modern Laravel package for multi-context, modular application development.**
 
 Equidna Toolkit bundles helpers, middleware, traits, and a service provider that keep responses, validation, and pagination consistent across web, API, hook, IoT, and console entry points. Targeted for Laravel 11 & 12 on PHP 8.2+, it embraces Laravel conventions while abstracting repetitive infrastructure code.
@@ -151,52 +153,61 @@ Default config (`config/equidna.php`):
 return [
     'paginator' => [
         'page_items' => 15,
-        'strategy' => '',
+        // Leave null to use the default pagination strategy or bind the interface yourself.
+        'strategy' => null,
     ],
     'route' => [
         'api_matchers' => ['api*', '*-api*'],
         'hook_matchers' => ['hooks/*'],
         'iot_matchers' => ['iot/*'],
         'json_matchers' => [],
-        'detector' => '',
-        'request_resolver' => '',
+        // Leave null to use the default detector/resolver or bind the interfaces yourself.
+        'detector' => null,
+        'request_resolver' => null,
     ],
     'responses' => [
         'allowed_headers' => [
             'Cache-Control',
             'Retry-After',
         ],
-        'strategies' => [
-            'console' => '',
-            'json' => '',
-            'redirect' => '',
-        ],
+        // Override per-context response strategies or leave empty to use defaults.
+        'strategies' => [],
     ],
 ];
 ```
 
  Customize the `api_matchers`, `hook_matchers`, and `iot_matchers` arrays to reflect your route prefixes or namespaces. Matchers are passed directly to Laravel's `Request::is()` for flexible glob matching (e.g., `services/api/*`).
 
+### Mandatory configuration and failure modes
+
+- The service provider now validates critical bindings during boot. If any configured class is missing or does not implement the required interface, Laravel will throw an `InvalidArgumentException` identifying the `equidna.*` config key during startup.
+- To swap strategies, either bind the relevant interface in your own service provider **or** set the class name in `config/equidna.php`. Boot will fail fast if a custom class is not autoloadable or does not implement the expected interface.
+- Route detection relies on the matcher arrays; leaving them empty disables detection for that channel, so configure patterns that match your route prefixes to avoid unexpected `wantsJson` behavior.
+
 ### Swap strategies for org-specific policies
 
 Use container-configurable strategies to override toolkit behavior without editing package code:
 
 ```php
-// config/equidna.php
-return [
-    'route' => [
-        'detector' => App\Routing\SubdomainRouteDetector::class,
+// In your application's service provider
+$this->app->singleton(\Equidna\Toolkit\Contracts\RouteDetectorInterface::class, fn($app) =>
+    $app->make(App\Routing\SubdomainRouteDetector::class)
+);
+
+$this->app->singleton('equidna.responses.json_strategy', fn($app) =>
+    $app->make(App\Http\Responses\AuditJsonResponse::class)
+);
+
+$this->app->singleton(\Equidna\Toolkit\Contracts\PaginationStrategyInterface::class, fn($app) =>
+    $app->make(App\Support\Pagination\TenantPaginationStrategy::class)
+);
+
+// Optional: override via config instead of bindings
+'responses' => [
+    'strategies' => [
+        'redirect' => App\Http\Responses\SafeRedirectResponse::class,
     ],
-    'responses' => [
-        'strategies' => [
-            'json' => App\Http\Responses\AuditJsonResponse::class,
-            'redirect' => App\Http\Responses\SafeRedirectResponse::class,
-        ],
-    ],
-    'paginator' => [
-        'strategy' => App\Support\Pagination\TenantPaginationStrategy::class,
-    ],
-];
+],
 ```
 
 Implementations can extend the provided abstract classes for shared helpers:
@@ -261,16 +272,22 @@ class SubdomainRouteDetector implements RouteDetectorInterface
 }
 ```
 
-Bind it by updating `config/equidna.php` (the service provider fills in defaults when these are omitted):
+Bind it explicitly (the service provider fills in defaults when these are omitted):
 
 ```php
+// In your own service provider
+$this->app->singleton(\Equidna\Toolkit\Contracts\RouteDetectorInterface::class, fn($app) =>
+    $app->make(SubdomainRouteDetector::class)
+);
+
+// Optional: override via config instead of a binding
 'route' => [
     // ...matchers...
     'detector' => SubdomainRouteDetector::class, // Fully qualified class name
 ],
 ```
 
-You can also replace the request resolver by implementing `Equidna\Toolkit\Contracts\RequestResolverInterface` and pointing `route.request_resolver` to your class (also as a fully qualified class name).
+You can also replace the request resolver by implementing `Equidna\Toolkit\Contracts\RequestResolverInterface` and either binding the interface or setting `route.request_resolver` to your class (also as a fully qualified class name).
 
 ## Response JSON shapes
 
@@ -408,14 +425,17 @@ Default config (`config/equidna.php`):
 return [
     'paginator' => [
         'page_items' => 15,
+        // Leave null to use the default pagination strategy or bind the interface yourself.
+        'strategy' => null,
     ],
     'route' => [
         'api_matchers' => ['api*', '*-api*'],
         'hook_matchers' => ['hooks/*'],
         'iot_matchers' => ['iot/*'],
         'json_matchers' => [],
-        'detector' => '',
-        'request_resolver' => '',
+        // Leave null to use the default detector/resolver or bind the interfaces yourself.
+        'detector' => null,
+        'request_resolver' => null,
     ],
 ];
 ```
@@ -427,7 +447,7 @@ return [
 - **Coding Standard**: PSR-12, 4-space indent, 250-char line limit, StyleCI (laravel preset)
 - **Static Analysis**: PHPStan (`vendor/bin/phpstan analyse`)
 - **PHP Version**: 8.2+
-- **No bundled tests**: Please contribute tests if you extend the package!
+- **Bundled tests**: PHPUnit suite covers helpers and middleware; run `vendor/bin/phpunit`.
 
 [!NOTE]
 This package is designed for advanced Laravel projects. For questions, open an issue or PR on GitHub.
