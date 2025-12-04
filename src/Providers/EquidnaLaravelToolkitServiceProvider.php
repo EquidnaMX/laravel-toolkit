@@ -40,6 +40,13 @@ use InvalidArgumentException;
 class EquidnaLaravelToolkitServiceProvider extends ServiceProvider
 {
     /**
+     * Resolved response strategy classes for validation.
+     *
+     * @var array<string, class-string<ResponseStrategyInterface>>
+     */
+    private array $responseStrategies = [];
+
+    /**
      * Register any application services.
      *
      * @return void
@@ -263,11 +270,4 @@ class EquidnaLaravelToolkitServiceProvider extends ServiceProvider
             throw new InvalidArgumentException("{$label} binding for {$abstract} must implement the expected interface.");
         }
     }
-
-    /**
-     * Resolved response strategy classes for validation.
-     *
-     * @var array<string, class-string<ResponseStrategyInterface>>
-     */
-    private array $responseStrategies = [];
 }
