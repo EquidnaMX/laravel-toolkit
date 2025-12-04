@@ -127,7 +127,7 @@ class EquidnaLaravelToolkitServiceProvider extends ServiceProvider
         $this->app->singleton(
             PaginationStrategyInterface::class,
             function ($app) {
-                $strategyClass = config('equidna.paginator.strategy') ?: DefaultPaginationStrategy::class;
+                $strategyClass = config('equidna.paginator.strategy') ?? DefaultPaginationStrategy::class;
 
                 return $app->make($strategyClass);
             },
