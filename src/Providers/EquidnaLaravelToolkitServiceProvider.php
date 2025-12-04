@@ -19,6 +19,7 @@ use Equidna\Toolkit\Exceptions\ForbiddenException;
 use Equidna\Toolkit\Contracts\PaginationStrategyInterface;
 use Equidna\Toolkit\Contracts\RequestResolverInterface;
 use Equidna\Toolkit\Contracts\RouteDetectorInterface;
+use Equidna\Toolkit\Contracts\ResponseStrategyInterface;
 use Equidna\Toolkit\Helpers\Detectors\ConfigurableRouteDetector;
 use Equidna\Toolkit\Helpers\Request\LaravelRequestResolver;
 use Equidna\Toolkit\Services\Pagination\DefaultPaginationStrategy;
@@ -31,6 +32,7 @@ use Equidna\Toolkit\Exceptions\TooManyRequestsException;
 use Equidna\Toolkit\Exceptions\UnauthorizedException;
 use Equidna\Toolkit\Exceptions\UnprocessableEntityException;
 use Illuminate\Support\ServiceProvider;
+use InvalidArgumentException;
 
 /**
  * Boots and registers the Equidna Toolkit services within Laravel applications.
@@ -60,6 +62,7 @@ class EquidnaLaravelToolkitServiceProvider extends ServiceProvider
     {
         $this->publishConfig();
         $this->registerExceptionHandlers();
+        $this->validateConfiguration();
     }
 
     /**
@@ -67,17 +70,16 @@ class EquidnaLaravelToolkitServiceProvider extends ServiceProvider
      */
     protected function registerRouteDetector(): void
     {
+        if ($this->app->bound(RouteDetectorInterface::class)) {
+            return;
+        }
+
         $this->app->singleton(
             RouteDetectorInterface::class,
             function ($app) {
                 $config = config('equidna.route', []);
 
-                $detectorClass = $config['detector'] ?? null;
-
-                if (empty($detectorClass)) {
-                    $detectorClass = ConfigurableRouteDetector::class;
-                    config(['equidna.route.detector' => $detectorClass]);
-                }
+                $detectorClass = $config['detector'] ?? ConfigurableRouteDetector::class;
 
                 return $app->make(
                     $detectorClass,
@@ -99,27 +101,18 @@ class EquidnaLaravelToolkitServiceProvider extends ServiceProvider
      */
     protected function registerRequestResolver(): void
     {
-        $this->app->singleton(
-            RequestResolverInterface::class,
-            fn($app) => $app->make(
-                $this->resolveRequestResolverClass(),
-            ),
-        );
-    }
-
-    /**
-     * Resolve the request resolver class, injecting defaults into config when not provided.
-     */
-    protected function resolveRequestResolverClass(): string
-    {
-        $resolverClass = config('equidna.route.request_resolver');
-
-        if (empty($resolverClass)) {
-            $resolverClass = LaravelRequestResolver::class;
-            config(['equidna.route.request_resolver' => $resolverClass]);
+        if ($this->app->bound(RequestResolverInterface::class)) {
+            return;
         }
 
-        return $resolverClass;
+        $this->app->singleton(
+            RequestResolverInterface::class,
+            function ($app) {
+                $resolverClass = config('equidna.route.request_resolver') ?: LaravelRequestResolver::class;
+
+                return $app->make($resolverClass);
+            },
+        );
     }
 
     /**
@@ -127,15 +120,14 @@ class EquidnaLaravelToolkitServiceProvider extends ServiceProvider
      */
     protected function registerPaginationStrategy(): void
     {
+        if ($this->app->bound(PaginationStrategyInterface::class)) {
+            return;
+        }
+
         $this->app->singleton(
             PaginationStrategyInterface::class,
             function ($app) {
-                $strategyClass = config('equidna.paginator.strategy');
-
-                if (empty($strategyClass)) {
-                    $strategyClass = DefaultPaginationStrategy::class;
-                    config(['equidna.paginator.strategy' => $strategyClass]);
-                }
+                $strategyClass = config('equidna.paginator.strategy') ?: DefaultPaginationStrategy::class;
 
                 return $app->make($strategyClass);
             },
@@ -147,18 +139,16 @@ class EquidnaLaravelToolkitServiceProvider extends ServiceProvider
      */
     protected function registerResponseStrategies(): void
     {
-        $strategies = config('equidna.responses.strategies', []);
-
-        $strategies = array_merge(
+        $strategies = array_replace(
             [
                 'console' => ConsoleResponseStrategy::class,
                 'json' => JsonResponseStrategy::class,
                 'redirect' => RedirectResponseStrategy::class,
             ],
-            array_filter($strategies),
+            array_filter(config('equidna.responses.strategies', [])),
         );
 
-        config(['equidna.responses.strategies' => $strategies]);
+        $this->responseStrategies = $strategies;
 
         foreach ($strategies as $key => $class) {
             $this->app->singleton(
@@ -221,4 +211,63 @@ class EquidnaLaravelToolkitServiceProvider extends ServiceProvider
             groups: 'equidna:config',
         );
     }
+
+    /**
+     * Validate critical configuration values and fail fast when misconfigured.
+     */
+    protected function validateConfiguration(): void
+    {
+        $this->assertServiceBinding(RouteDetectorInterface::class, 'Route detector');
+        $this->assertServiceBinding(RequestResolverInterface::class, 'Request resolver');
+        $this->assertServiceBinding(PaginationStrategyInterface::class, 'Pagination strategy');
+
+        foreach ($this->responseStrategies as $key => $class) {
+            $this->assertClassConfig(
+                $class,
+                ResponseStrategyInterface::class,
+                "equidna.responses.strategies.{$key}",
+            );
+        }
+    }
+
+    /**
+     * Ensure a configured class exists and implements the expected interface.
+     */
+    protected function assertClassConfig(?string $class, string $interface, string $configKey): void
+    {
+        if (empty($class)) {
+            throw new InvalidArgumentException("Configuration '{$configKey}' must specify a class implementing {$interface}.");
+        }
+
+        if (!class_exists($class)) {
+            throw new InvalidArgumentException("Configuration '{$configKey}' references missing class {$class}.");
+        }
+
+        if (!is_subclass_of($class, $interface)) {
+            throw new InvalidArgumentException("Configuration '{$configKey}' must implement {$interface}.");
+        }
+    }
+
+    /**
+     * Ensure a bound service resolves and satisfies the expected interface.
+     */
+    protected function assertServiceBinding(string $abstract, string $label): void
+    {
+        if (! $this->app->bound($abstract)) {
+            throw new InvalidArgumentException("{$label} binding for {$abstract} is required.");
+        }
+
+        $instance = $this->app->make($abstract);
+
+        if (! $instance instanceof $abstract) {
+            throw new InvalidArgumentException("{$label} binding for {$abstract} must implement the expected interface.");
+        }
+    }
+
+    /**
+     * Resolved response strategy classes for validation.
+     *
+     * @var array<string, class-string<ResponseStrategyInterface>>
+     */
+    private array $responseStrategies = [];
 }
