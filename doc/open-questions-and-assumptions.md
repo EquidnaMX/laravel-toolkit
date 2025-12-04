@@ -1,21 +1,10 @@
 # Open Questions & Assumptions
 
-## Deployment
+Current state after documentation review:
 
-- Assumption: No migrations, routes, or assets are published by the package.
-- Assumption: Config publish tag is `equidna:config` per project instructions.
+- **Routes/prefixes:** Defaults are `api*`, `*-api*`, `hooks/*`, `iot/*`; adjust `json_matchers` for any additional JSON-only routes (e.g., `/webhooks/*`, `/services/api/*`).
+- **Publishing:** Only `config/equidna.php` is publishable via `equidna:config`; no routes, assets, or migrations are shipped.
+- **Monitoring:** Package defers to host app logging/monitoring. Consider pairing with Telescope/Horizon/Sentry in consuming apps if deeper observability is required.
+- **Business logic:** Package is intentionally infrastructure-focused; domain flows remain in the host application.
 
-## API & Routes
-
-- Assumption: Package does not auto-register any routes; host app defines them.
-- Question: Are there recommended route prefixes beyond `/api/*`, `/hooks/*`, `/iot/*` for detection?
-
-## Monitoring
-
-- Assumption: Package relies on host app logging/monitoring; no channels are added.
-
-## Business Logic
-
-- Assumption: Toolkit aims at response formatting and utilities, not domain flows.
-
-If any assumption is incorrect, please update this document and the relevant details in other docs.
+If consuming teams need additional route matcher presets or built-in monitoring hooks, capture the requirement before implementing to keep compatibility guarantees clear.
