@@ -243,7 +243,7 @@ class EquidnaLaravelToolkitServiceProvider extends ServiceProvider
             throw new InvalidArgumentException("Configuration '{$configKey}' references missing class {$class}.");
         }
 
-        if (!is_subclass_of($class, $interface)) {
+        if (!is_a($class, $interface, true)) {
             throw new InvalidArgumentException("Configuration '{$configKey}' must implement {$interface}.");
         }
     }
