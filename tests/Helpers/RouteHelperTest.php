@@ -43,4 +43,25 @@ class RouteHelperTest extends TestCase
         $this->assertTrue(RouteHelper::isIoT());
         $this->assertFalse(RouteHelper::isWeb());
     }
+
+    public function test_route_helpers_resolve_name_and_expressions(): void
+    {
+        $this->app->setRunningInConsole(false);
+
+        $request = Request::create('/admin/users', 'GET');
+        $request->setRouteResolver(fn() => new class () {
+            public function getName(): string
+            {
+                return 'admin.users.index';
+            }
+        });
+
+        $this->app->instance('request', $request);
+        $this->app->singleton(RouteDetectorInterface::class, fn() => new FakeRouteDetector());
+
+        $this->assertTrue(RouteHelper::isRouteName('admin.users.index'));
+        $this->assertTrue(RouteHelper::routeContains('users'));
+        $this->assertTrue(RouteHelper::isExpression('admin/*'));
+        $this->assertSame('GET', RouteHelper::getMethod());
+    }
 }
