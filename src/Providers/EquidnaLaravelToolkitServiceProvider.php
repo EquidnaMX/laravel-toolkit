@@ -108,7 +108,7 @@ class EquidnaLaravelToolkitServiceProvider extends ServiceProvider
         $this->app->singleton(
             RequestResolverInterface::class,
             function ($app) {
-                $resolverClass = config('equidna.route.request_resolver') ?: LaravelRequestResolver::class;
+                $resolverClass = config('equidna.route.request_resolver') ?? LaravelRequestResolver::class;
 
                 return $app->make($resolverClass);
             },
