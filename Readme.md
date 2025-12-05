@@ -92,9 +92,8 @@ use Equidna\Toolkit\Helpers\ResponseHelper;
 return ResponseHelper::success('Saved', ['id' => $model->id]);
 
 // Custom status and headers (filtered through the allow-list for JSON)
-return ResponseHelper::error(
+return ResponseHelper::unprocessableEntity(
     message: 'Invalid input',
-    status: ResponseHelper::HTTP_UNPROCESSABLE_ENTITY,
     errors: ['email' => ['Already taken']],
     headers: ['Retry-After' => '30'],
 );
