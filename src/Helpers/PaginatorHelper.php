@@ -30,11 +30,18 @@ class PaginatorHelper
      * The paginator mirrors Laravel's manual paginator creation guidance
      * so the consuming application can attach it to Blade links or APIs.
      *
-     * @param  array<int|string, mixed>|Collection|LengthAwarePaginator|EloquentBuilder|QueryBuilder $data           Dataset or builder to paginate.
-     * @param  int|null                                                             $page           Page number (defaults to 1).
-     * @param  int|null                                                             $items_per_page Items per page (defaults to config value).
-     * @param  bool                                                                 $set_full_url   When true, sets the paginator path to the current URL.
-     * @return LengthAwarePaginator                                                                Paginator ready for rendering or JSON serialization.
+     * @param  array<int|string, mixed>|Collection|LengthAwarePaginator
+     *         |EloquentBuilder|QueryBuilder                              $data
+     *                                                                     Dataset or builder to paginate.
+     * @param  int|null                                                  $page           Page number
+     *                                                                                   (defaults to 1).
+     * @param  int|null                                                  $items_per_page Items per page
+     *                                                                                   (defaults to config).
+     * @param  bool                                                      $set_full_url   When true, sets the
+     *                                                                                   paginator path to
+     *                                                                                   current URL.
+     * @return LengthAwarePaginator                                                     Paginator ready for
+     *                                                                                   rendering or JSON.
      */
     public static function buildPaginator(
         array|Collection|LengthAwarePaginator|EloquentBuilder|QueryBuilder $data,
@@ -54,12 +61,14 @@ class PaginatorHelper
      * Paginate a database-backed query with length-aware metadata.
      *
      * @param  EloquentBuilder|QueryBuilder $query          Eloquent or base query builder.
-     * @param  int|null     $page           Page number (defaults to 1).
-     * @param  string       $pageName       Pagination parameter name.
-     * @param  int|null     $items_per_page Items per page (defaults to config value).
-     * @param  bool         $set_full_url   When true, sets the paginator path to the current URL.
-     * @param  callable|null $transformation Optional transformation callback applied via through().
-     * @return LengthAwarePaginator                         Paginator ready for rendering or JSON serialization.
+     * @param  int|null                     $page           Page number (defaults to 1).
+     * @param  string                       $pageName       Pagination parameter name.
+     * @param  int|null                     $items_per_page Items per page (defaults to config).
+     * @param  bool                         $set_full_url   When true, sets paginator path to
+     *                                                       current URL.
+     * @param  callable|null                $transformation Optional transformation callback via
+     *                                                       through().
+     * @return LengthAwarePaginator                         Paginator ready for rendering or JSON.
      */
     public static function paginateLengthAware(
         EloquentBuilder|QueryBuilder $query,

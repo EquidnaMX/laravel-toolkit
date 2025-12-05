@@ -14,6 +14,10 @@
 namespace Equidna\Toolkit\Helpers;
 
 use Equidna\Toolkit\Contracts\ResponseStrategyInterface;
+use Equidna\Toolkit\Exceptions\ConfigurationException;
+use Equidna\Toolkit\Services\Responses\ConsoleResponseStrategy;
+use Equidna\Toolkit\Services\Responses\JsonResponseStrategy;
+use Equidna\Toolkit\Services\Responses\RedirectResponseStrategy;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -75,8 +79,6 @@ class ResponseHelper
 
     private static function resolveStrategy(): ResponseStrategyInterface
     {
-        $strategies = config('equidna.responses.strategies', []);
-
         $key = 'redirect';
 
         if (RouteHelper::isConsole()) {
@@ -85,16 +87,30 @@ class ResponseHelper
             $key = 'json';
         }
 
-        $class = $strategies[$key] ?? $strategies['redirect'] ?? null;
-
-        if (empty($class)) {
-            throw new Exception('No response strategy configured for key: ' . $key);
-        }
-
         $binding = "equidna.responses.{$key}_strategy";
 
         if (app()->bound($binding)) {
             return app()->make($binding);
+        }
+
+        $defaults = [
+            'console' => ConsoleResponseStrategy::class,
+            'json' => JsonResponseStrategy::class,
+            'redirect' => RedirectResponseStrategy::class,
+        ];
+
+        $configured = array_filter((array) config('equidna.responses.strategies', []));
+
+        $class = $configured[$key] ?? $defaults[$key];
+
+        if (!is_string($class) || $class === '') {
+            throw new ConfigurationException("No response strategy configured for key: {$key}");
+        }
+
+        if (!is_a($class, ResponseStrategyInterface::class, true)) {
+            throw new ConfigurationException(
+                sprintf('Response strategy %s must implement %s', $class, ResponseStrategyInterface::class),
+            );
         }
 
         return app()->make($class);
@@ -448,7 +464,6 @@ class ResponseHelper
         );
     }
 
-    /**
     /**
      * Returns a 500 Internal Server Error response for unexpected failures.
      *

@@ -35,4 +35,3 @@ class JsonResponseStrategy extends AbstractResponseStrategy
         return response()->json($response, $status, $headers);
     }
 }
-

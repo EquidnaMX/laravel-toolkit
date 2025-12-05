@@ -41,4 +41,3 @@ interface ResponseStrategyInterface
      */
     public function requiresHeaderAllowList(): bool;
 }
-

@@ -5,6 +5,7 @@ A Laravel 11/12 package that unifies response patterns, pagination utilities, an
 ![CI status](https://github.com/EquidnaMX/laravel-toolkit/actions/workflows/ci.yml/badge.svg)
 
 ## At a Glance
+
 - **Context-aware routing**: Detect API, hook, IoT, JSON-only, and console flows with configurable matchers.
 - **Unified responses**: Generate JSON, redirects, or console output through a single helper API and swappable strategies.
 - **Validation-friendly requests**: `EquidnaFormRequest` surfaces validation failures as HTTP exceptions instead of redirects.
@@ -13,17 +14,20 @@ A Laravel 11/12 package that unifies response patterns, pagination utilities, an
 - **Composite key support**: `HasCompositePrimaryKey` removes boilerplate for multi-column primary keys.
 
 ## Compatibility
+
 - **PHP:** 8.2 or 8.3 (validated in CI)
 - **Laravel:** 11.x or 12.x
 - **Composer:** 2.5+ recommended (for `composer audit`)
 
 ## Installation
+
 ```bash
 composer require equidna/laravel-toolkit
 php artisan vendor:publish --tag=equidna:config
 ```
 
 Auto-discovery registers the service provider. For manual registration add to `config/app.php`:
+
 ```php
 'providers' => [
     Equidna\Toolkit\Providers\EquidnaLaravelToolkitServiceProvider::class,
@@ -31,6 +35,7 @@ Auto-discovery registers the service provider. For manual registration add to `c
 ```
 
 ## Configuration
+
 `config/equidna.php` (publish to your app) exposes the main touchpoints:
 
 ```php
@@ -57,11 +62,16 @@ return [
 - Matchers feed directly into `Request::is()`. Align them with your route prefixes (e.g., `services/api/*`).
 - JSON preference is inferred from API/hook/IoT matchers, additional `json_matchers`, or `Request::expectsJson()`.
 - To override behavior, either bind the related interface or set the fully qualified class in config; boot will fail fast if a class is missing or does not implement the expected interface.
+- **Allowed headers** (`equidna.responses.allowed_headers`): When JSON responses are sent, only headers in this allow-list are passed to the client. By default, `Cache-Control` and `Retry-After` are allowed. In non-debug mode, the header filtering is enforced to prevent accidental leakage of sensitive internal headers (e.g., X-Debug-Token). Customize this list in config if your application depends on additional headers for caching or rate-limiting.
 
 ### Mandatory configuration and failure modes
+
 The service provider validates critical bindings during boot. Laravel throws an `InvalidArgumentException` when a configured class is missing or does not implement its interface (e.g., `RouteDetectorInterface`, `RequestResolverInterface`, `PaginationStrategyInterface`, `ResponseStrategyInterface`). This keeps deployments from silently misbehaving.
 
+The toolkit ships default pagination and response strategies; leaving `equidna.paginator.strategy` and `equidna.responses.strategies` empty uses the built-ins. Misconfigured or missing classes raise a `ConfigurationException` at runtime. Ensure `paginator.page_items` remains a positive integer to avoid boot-time failures.
+
 ### Swap strategies for org-specific policies
+
 Use container overrides or config to customize detection, pagination, or responses without editing package code:
 
 ```php
@@ -76,7 +86,9 @@ $this->app->singleton('equidna.responses.json_strategy', fn($app) =>
 ```
 
 ## Usage
+
 ### RouteHelper
+
 ```php
 use Equidna\Toolkit\Helpers\RouteHelper;
 
@@ -85,6 +97,7 @@ if (RouteHelper::wantsJson()) { /* return an API-friendly payload */ }
 ```
 
 ### ResponseHelper
+
 ```php
 use Equidna\Toolkit\Helpers\ResponseHelper;
 
@@ -100,6 +113,7 @@ return ResponseHelper::unprocessableEntity(
 ```
 
 ### Pagination
+
 ```php
 use Equidna\Toolkit\Helpers\PaginatorHelper;
 
@@ -110,6 +124,7 @@ PaginatorHelper::appendCleanedRequest($paginator, request());
 Cursor and length-aware pagination helpers proxy to the configured `PaginationStrategyInterface` and accept optional transformations via `through()`.
 
 ### Composite primary keys
+
 ```php
 use Equidna\Toolkit\Traits\Database\HasCompositePrimaryKey;
 
@@ -125,20 +140,25 @@ class UserRole extends Model
 ```
 
 ### Middleware
-Register in your host app’s `Http\Kernel` when desired:
+
+Register in your host app's `Http\Kernel` when desired:
+
 - `Http\Middleware\ForceJsonResponse` – forces JSON responses for matched requests.
 - `Http\Middleware\ExcludeFromHistory` – skips adding requests to browser history.
 - `Http\Middleware\DisableDebugbar` – disables Laravel Debugbar for the request lifecycle.
 
 ### Exceptions
+
 HTTP-friendly exceptions (`src/Exceptions/*`) are container-bound by the service provider and render context-aware responses. Use them in controllers/services to standardize error handling (e.g., `throw new UnauthorizedException();`).
 
 ### Traits & Requests
+
 - `Traits\Database\HasCompositePrimaryKey` – declare composite key columns via `getKeyName()`.
 - `Traits\Database\Paginator` – integrates pagination helpers inside models.
 - `Http\Requests\EquidnaFormRequest` – extends Laravel's `FormRequest` to emit HTTP exceptions instead of redirects on validation failure.
 
 ### Technical overview
+
 - `Helpers/` — context-aware utilities (RouteHelper, ResponseHelper, PaginatorHelper)
 - `Http/Middleware/` — ForceJsonResponse, ExcludeFromHistory, DisableDebugbar
 - `Exceptions/` — custom HTTP exceptions auto-bound by the service provider
@@ -146,23 +166,36 @@ HTTP-friendly exceptions (`src/Exceptions/*`) are container-bound by the service
 - `Providers/` — EquidnaLaravelToolkitServiceProvider
 
 ## Development
+
 - Coding standard: PSR-12 (`vendor/bin/phpcs --standard=ruleset.xml`).
-- Static analysis: `vendor/bin/phpstan analyse -c phpstan.neon`.
+- Static analysis: `vendor/bin/phpstan analyse -c phpstan.neon --memory-limit=512M`.
 - Tests: `vendor/bin/phpunit`.
 - Run `composer audit --locked` before releases.
 
 ### Release hygiene
+
 - Keep `CHANGELOG.md` updated for every user-facing change and reset the `Unreleased` section when tagging.
 - Align the package version in `composer.json` with the release tag and changelog entry.
 - Run audits, linters, static analysis, and tests (above) before publishing.
 
 ### PHPStan note
+
 Running PHPStan against the library can surface `trait.unused` warnings for `Traits/Database/HasCompositePrimaryKey.php` and `Traits/Database/Paginator.php` because they are consumed by downstream apps. Options:
+
 - Leave the warning (informational).
 - Add an `ignoreErrors` rule for these messages in `phpstan.neon`.
 - Add minimal unit tests or example usage files that reference the traits so PHPStan recognizes they are used.
 
+## Enterprise readiness checklist
+
+- **Compatibility matrix:** PHP 8.2/8.3, Laravel 11/12. Defaults work without custom strategies; failures raise `ConfigurationException`.
+- **Quality gates (run before release):** `composer install`, `vendor/bin/phpunit`, `vendor/bin/phpstan analyse -c phpstan.neon --memory-limit=512M`, `vendor/bin/phpcs --standard=ruleset.xml`, `composer audit --locked` (add `--no-dev` for production builds).
+- **Configuration safety:** Toolkit ships default pagination/response strategies; boot-time validation prevents misconfiguration. `paginator.page_items` must be a positive integer.
+- **Security posture:** No remote calls or telemetry; header allow-list enforced for JSON/redirect contexts. Use GitHub issues for security contact until a SECURITY.md is published.
+- **Release discipline:** Semantic Versioning; align `composer.json` version, tag, and `CHANGELOG.md` entry. Run quality gates and audits before tagging.
+
 ## License & compliance
+
 - **License:** MIT (see [`LICENSE`](LICENSE)).
 - **Dependencies:** Laravel Framework, Illuminate Support, and Laravel Helpers (MIT licensed).
 - **Packaging:** Ships as a Composer library with no bundled telemetry or proprietary services.

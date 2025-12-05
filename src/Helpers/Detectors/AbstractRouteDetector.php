@@ -42,4 +42,3 @@ abstract class AbstractRouteDetector implements RouteDetectorInterface
         return $request->is($patterns);
     }
 }
-

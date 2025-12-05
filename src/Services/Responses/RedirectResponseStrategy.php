@@ -49,4 +49,3 @@ class RedirectResponseStrategy extends AbstractResponseStrategy
             ->all();
     }
 }
-

@@ -4,6 +4,17 @@
 
 _No changes yet._
 
+## [1.0.4] - 2025-12-05
+
+### Fixed
+- Resolved response strategy resolution so default bindings work without custom configuration and added configuration guardrails with `ConfigurationException`.
+- Validated paginator page-size configuration to require positive integers and improved request query appending.
+
+### Added
+- Tests covering service provider response strategy wiring/validation and configuration guards for pagination and response helpers.
+- Enterprise readiness and quality-gate guidance in the README.
+- Security policy in `SECURITY.md`.
+
 ## Maintainer guidance
 
 ### Changelog maintenance

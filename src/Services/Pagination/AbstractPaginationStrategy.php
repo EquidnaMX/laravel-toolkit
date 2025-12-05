@@ -3,6 +3,7 @@
 namespace Equidna\Toolkit\Services\Pagination;
 
 use Equidna\Toolkit\Contracts\PaginationStrategyInterface;
+use Equidna\Toolkit\Exceptions\ConfigurationException;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\CursorPaginator;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -19,7 +20,28 @@ abstract class AbstractPaginationStrategy implements PaginationStrategyInterface
 
     public function appendCleanedRequest(CursorPaginator|LengthAwarePaginator $paginator, Request $request): void
     {
-        $paginator->appends($request->except($this->excludedRequestParameters()));
+        $params = $request->except($this->excludedRequestParameters());
+
+        if (empty($params)) {
+            $queryParams = $request->query();
+            if (is_object($queryParams) && method_exists($queryParams, 'all')) {
+                $queryParams = $queryParams->all();
+            }
+
+            $params = array_diff_key(
+                (array) $queryParams,
+                array_flip($this->excludedRequestParameters()),
+            );
+        }
+
+        if (empty($params)) {
+            $params = array_diff_key(
+                (array) $request->all(),
+                array_flip($this->excludedRequestParameters()),
+            );
+        }
+
+        $paginator->appends($params);
     }
 
     public function setFullURL(CursorPaginator|LengthAwarePaginator $paginator): void
@@ -34,7 +56,13 @@ abstract class AbstractPaginationStrategy implements PaginationStrategyInterface
 
     protected function resolveItemsPerPage(?int $itemsPerPage = null): int
     {
-        return $itemsPerPage ?: config('equidna.paginator.page_items');
+        $resolved = $itemsPerPage ?? config('equidna.paginator.page_items');
+        $resolved = (int) $resolved;
+
+        if ($resolved <= 0) {
+            throw new ConfigurationException('Pagination per-page value must be a positive integer.');
+        }
+
+        return $resolved;
     }
 }
-

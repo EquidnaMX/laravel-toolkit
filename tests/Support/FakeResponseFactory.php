@@ -44,15 +44,9 @@ class FakeResponseFactory implements ResponseFactory
         return $this->json(['download' => $name], 200, $headers);
     }
 
-    public function streamJson($callback, $status = 200, array $headers = [], $options = 0)
+    public function streamJson($data, $status = 200, $headers = [], $encodingOptions = 15)
     {
-        ob_start();
-        $callback();
-        $captured = ob_get_clean();
-
-        $decoded = $captured !== '' ? json_decode($captured, true) : null;
-
-        return $this->json($decoded ?? ['stream_json' => true], $status, $headers, $options);
+        return $this->json($data ?? ['stream_json' => true], $status, $headers, $encodingOptions);
     }
 
     public function download($file, $name = null, array $headers = [], $disposition = 'attachment')

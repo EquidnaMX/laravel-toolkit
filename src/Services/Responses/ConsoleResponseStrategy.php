@@ -11,7 +11,7 @@ class ConsoleResponseStrategy extends AbstractResponseStrategy
         mixed $data = null,
         array $headers = [],
         ?string $forwardUrl = null
-    ): string {   
+    ): string {
         $lines = ["[{$status}] {$message}"];
 
         if (!empty($errors)) {
@@ -47,4 +47,3 @@ class ConsoleResponseStrategy extends AbstractResponseStrategy
         return $encoded === false ? '[unserializable payload]' : $encoded;
     }
 }
-

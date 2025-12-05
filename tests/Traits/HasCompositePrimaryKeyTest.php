@@ -7,24 +7,29 @@ namespace Equidna\Toolkit\Tests\Traits;
 use Equidna\Toolkit\Tests\TestCase;
 use Equidna\Toolkit\Traits\Database\HasCompositePrimaryKey;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 
 class HasCompositePrimaryKeyTest extends TestCase
 {
     public function test_set_keys_for_save_query_uses_original_values(): void
     {
-        $model = new class () extends Model {
+        $model = new class () {
             use HasCompositePrimaryKey;
 
-            protected $table = 'example';
-
-            public $timestamps = false;
-
-            protected array $primaryKey = ['first', 'second'];
+            public array $original = [];
 
             public function getKeyName(): array
             {
-                return $this->primaryKey;
+                return ['first', 'second'];
+            }
+
+            public function getAttribute($key)
+            {
+                return $this->{$key} ?? null;
+            }
+
+            public function callSetKeysForSaveQuery($query)
+            {
+                return $this->setKeysForSaveQuery($query);
             }
         };
 
@@ -43,25 +48,31 @@ class HasCompositePrimaryKeyTest extends TestCase
             )
             ->willReturnSelf();
 
-        $result = $model->setKeysForSaveQuery($builder);
+        $result = $model->callSetKeysForSaveQuery($builder);
 
         $this->assertSame($builder, $result);
     }
 
     public function test_set_keys_for_save_query_falls_back_to_attributes(): void
     {
-        $model = new class () extends Model {
+        $model = new class () {
             use HasCompositePrimaryKey;
 
-            protected $table = 'example';
-
-            public $timestamps = false;
-
-            protected array $primaryKey = ['first', 'second'];
+            public array $original = [];
 
             public function getKeyName(): array
             {
-                return $this->primaryKey;
+                return ['first', 'second'];
+            }
+
+            public function getAttribute($key)
+            {
+                return $this->{$key} ?? null;
+            }
+
+            public function callSetKeysForSaveQuery($query)
+            {
+                return $this->setKeysForSaveQuery($query);
             }
         };
 
@@ -81,7 +92,7 @@ class HasCompositePrimaryKeyTest extends TestCase
             )
             ->willReturnSelf();
 
-        $result = $model->setKeysForSaveQuery($builder);
+        $result = $model->callSetKeysForSaveQuery($builder);
 
         $this->assertSame($builder, $result);
     }

@@ -52,9 +52,9 @@ class UnauthorizedException extends Exception
     /**
      * Render the exception into an HTTP response.
      *
-     * @return RedirectResponse|JsonResponse
+     * @return RedirectResponse|JsonResponse|string
      */
-    public function render(): RedirectResponse|JsonResponse
+    public function render(): RedirectResponse|JsonResponse|string
     {
         return ResponseHelper::unauthorized(
             message: $this->message,

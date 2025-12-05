@@ -90,6 +90,10 @@ class DefaultPaginationStrategy extends AbstractPaginationStrategy
             $cursorName,
         );
 
+        if (!$paginator instanceof CursorPaginator) {
+            throw new \RuntimeException('Cursor pagination must return a CursorPaginator instance.');
+        }
+
         if (!is_null($transformation)) {
             $paginator->through($transformation);
         }
@@ -101,4 +105,3 @@ class DefaultPaginationStrategy extends AbstractPaginationStrategy
         return $paginator;
     }
 }
-

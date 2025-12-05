@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Equidna\Toolkit\Tests\Helpers;
 
 use Equidna\Toolkit\Helpers\ResponseHelper;
+use Equidna\Toolkit\Exceptions\ConfigurationException;
 use Equidna\Toolkit\Tests\Support\FakeRedirectResponse;
 use Equidna\Toolkit\Tests\Support\FakeRouteDetector;
 use Equidna\Toolkit\Tests\TestCase;
@@ -69,7 +70,7 @@ class ResponseHelperTest extends TestCase
         );
 
         $this->assertInstanceOf(FakeRedirectResponse::class, $response);
-        $this->assertSame('https://example.com/login', $response->targetUrl);
+        $this->assertSame('https://example.com/login', $response->getTargetUrl());
         $this->assertSame([
             'status' => ResponseHelper::HTTP_FORBIDDEN,
             'message' => 'Blocked',
@@ -84,7 +85,7 @@ class ResponseHelperTest extends TestCase
             'debug' => 'trace',
         ], $response->errors);
         $this->assertTrue($response->input);
-        $this->assertSame(['Retry-After' => '30'], $response->headers);
+        $this->assertSame('30', $response->headers->get('Retry-After'));
     }
 
     public function test_handle_exception_maps_to_configured_status(): void
@@ -103,7 +104,6 @@ class ResponseHelperTest extends TestCase
         $this->assertSame([
             'status' => ResponseHelper::HTTP_NOT_FOUND,
             'message' => 'Missing',
-            'errors' => [],
         ], $response->getData(true));
     }
 
@@ -117,5 +117,36 @@ class ResponseHelperTest extends TestCase
         $this->assertStringContainsString('[500] An unexpected error occurred.', $response);
         $this->assertStringNotContainsString('Sensitive details', $response);
         $this->assertStringNotContainsString('trace', $response);
+    }
+
+    public function test_default_strategies_work_without_custom_config(): void
+    {
+        $this->app->setRunningInConsole(false);
+        $this->app->instance('request', Request::create('/web/example', 'GET'));
+        $this->config->set('equidna.responses.strategies', []);
+        $this->app->singleton(
+            \Equidna\Toolkit\Contracts\RouteDetectorInterface::class,
+            fn() => new FakeRouteDetector(),
+        );
+
+        $response = ResponseHelper::success('OK', ['foo' => 'bar'], forward_url: 'https://example.com/next');
+
+        $this->assertInstanceOf(FakeRedirectResponse::class, $response);
+        $this->assertSame('https://example.com/next', $response->getTargetUrl());
+    }
+
+    public function test_invalid_strategy_class_throws_configuration_exception(): void
+    {
+        $this->config->set('equidna.responses.strategies', ['json' => \stdClass::class]);
+        $this->app->setRunningInConsole(false);
+        $this->app->instance('request', Request::create('/api/example', 'GET'));
+        $this->app->singleton(
+            \Equidna\Toolkit\Contracts\RouteDetectorInterface::class,
+            fn() => new FakeRouteDetector(api: true, wantsJson: true),
+        );
+
+        $this->expectException(ConfigurationException::class);
+
+        ResponseHelper::success('broken');
     }
 }

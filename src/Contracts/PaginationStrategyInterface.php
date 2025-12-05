@@ -47,4 +47,3 @@ interface PaginationStrategyInterface
      */
     public function excludedRequestParameters(): array;
 }
-

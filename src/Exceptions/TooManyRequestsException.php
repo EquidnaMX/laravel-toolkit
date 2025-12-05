@@ -52,9 +52,9 @@ class TooManyRequestsException extends Exception
     /**
      * Render the exception into an HTTP response.
      *
-     * @return RedirectResponse|JsonResponse
+     * @return RedirectResponse|JsonResponse|string
      */
-    public function render(): RedirectResponse|JsonResponse
+    public function render(): RedirectResponse|JsonResponse|string
     {
         return ResponseHelper::tooManyRequests(
             message: $this->message,

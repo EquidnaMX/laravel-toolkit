@@ -72,6 +72,8 @@ abstract class TestCase extends BaseTestCase
 
         $this->app->instance('url', $urlGenerator);
         $this->app->instance('redirect', new FakeRedirector($urlGenerator));
+        $this->app->alias('url', 'Illuminate\\Contracts\\Routing\\UrlGenerator');
+        $this->app->alias('redirect', 'Illuminate\\Routing\\Redirector');
         $this->app->instance('Illuminate\\Contracts\\Routing\\ResponseFactory', new FakeResponseFactory());
         $this->app->alias('Illuminate\\Contracts\\Routing\\ResponseFactory', 'response');
     }

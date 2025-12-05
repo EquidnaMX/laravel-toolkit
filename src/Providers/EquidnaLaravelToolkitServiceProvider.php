@@ -243,15 +243,21 @@ class EquidnaLaravelToolkitServiceProvider extends ServiceProvider
     protected function assertClassConfig(?string $class, string $interface, string $configKey): void
     {
         if (empty($class)) {
-            throw new InvalidArgumentException("Configuration '{$configKey}' must specify a class implementing {$interface}.");
+            throw new InvalidArgumentException(
+                sprintf("Configuration '%s' must specify a class implementing %s.", $configKey, $interface),
+            );
         }
 
         if (!class_exists($class)) {
-            throw new InvalidArgumentException("Configuration '{$configKey}' references missing class {$class}.");
+            throw new InvalidArgumentException(
+                sprintf("Configuration '%s' references missing class %s.", $configKey, $class),
+            );
         }
 
         if (!is_a($class, $interface, true)) {
-            throw new InvalidArgumentException("Configuration '{$configKey}' must implement {$interface}.");
+            throw new InvalidArgumentException(
+                sprintf("Configuration '%s' must implement %s.", $configKey, $interface),
+            );
         }
     }
 
@@ -267,7 +273,9 @@ class EquidnaLaravelToolkitServiceProvider extends ServiceProvider
         $instance = $this->app->make($abstract);
 
         if (! $instance instanceof $abstract) {
-            throw new InvalidArgumentException("{$label} binding for {$abstract} must implement the expected interface.");
+            throw new InvalidArgumentException(
+                "{$label} binding for {$abstract} must implement the expected interface.",
+            );
         }
     }
 }

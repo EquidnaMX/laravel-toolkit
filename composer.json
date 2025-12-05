@@ -1,7 +1,7 @@
 {
   "name": "equidna/laravel-toolkit",
   "description": "Multi-context Laravel helpers, middleware, and utilities.",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "type": "library",
   "license": "MIT",
   "authors": [

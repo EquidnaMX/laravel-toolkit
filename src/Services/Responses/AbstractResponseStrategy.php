@@ -15,4 +15,3 @@ abstract class AbstractResponseStrategy implements ResponseStrategyInterface
         return $this->requiresHeaderAllowList;
     }
 }
-
