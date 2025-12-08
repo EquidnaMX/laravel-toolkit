@@ -13,6 +13,11 @@
 
 namespace Equidna\Toolkit\Helpers;
 
+use Equidna\Toolkit\Contracts\ResponseStrategyInterface;
+use Equidna\Toolkit\Exceptions\ConfigurationException;
+use Equidna\Toolkit\Services\Responses\ConsoleResponseStrategy;
+use Equidna\Toolkit\Services\Responses\JsonResponseStrategy;
+use Equidna\Toolkit\Services\Responses\RedirectResponseStrategy;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -56,76 +61,105 @@ class ResponseHelper
         array $headers = [],
         ?string $forward_url = null
     ): string|JsonResponse|RedirectResponse {
-        if (RouteHelper::isConsole()) {
-            return $message;
-        }
+        $strategy = self::resolveStrategy();
 
-        if (RouteHelper::wantsJson()) {
-            return self::generateJsonResponse(
-                status: $status,
-                message: $message,
-                errors: $errors,
-                data: $data,
-                headers: $headers,
-            );
-        }
+        $sanitizedMessage = self::sanitizeMessage($status, $message);
+        $sanitizedErrors  = self::sanitizeErrors($status, $errors);
+        $sanitizedHeaders = self::sanitizeHeaders($headers, $strategy);
 
-        return redirect(
-            to: $forward_url ?? url()->previous(),
-            headers: $headers,
-        )->with(
-            [
-                'status'  => $status,
-                'message' => $message,
-                'errors'  => $errors,
-                'data'    => $data,
-            ]
-        )->withErrors($errors)
-            ->withInput();
+        return $strategy->respond(
+            status: $status,
+            message: $sanitizedMessage,
+            errors: $sanitizedErrors,
+            data: $data,
+            headers: $sanitizedHeaders,
+            forwardUrl: $forward_url,
+        );
     }
 
-    /**
-     * Builds a JSON response structure that mirrors Laravel's default API shape.
-     *
-     * @param  int                              $status    HTTP status code.
-     * @param  string                           $message   Text describing the operation outcome.
-     * @param  array<int|string, mixed>         $errors    Error bag persisted for failing responses.
-     * @param  mixed                            $data      Optional payload returned to the consumer.
-     * @param  array<string, string>            $headers   Extra headers applied to the JSON response.
-     * @return JsonResponse
-     */
-    private static function generateJsonResponse(
-        int $status,
-        string $message,
-        array $errors = [],
-        mixed $data = null,
-        array $headers = []
-    ): JsonResponse {
-        if ($status === self::HTTP_NO_CONTENT) {
-            return response()->json(null, $status, $headers);
+    private static function resolveStrategy(): ResponseStrategyInterface
+    {
+        $key = 'redirect';
+
+        if (RouteHelper::isConsole()) {
+            $key = 'console';
+        } elseif (RouteHelper::wantsJson()) {
+            $key = 'json';
         }
 
-        $response = [
-            'status'  => $status,
-            'message' => $message,
+        $binding = "equidna.responses.{$key}_strategy";
+
+        if (app()->bound($binding)) {
+            return app()->make($binding);
+        }
+
+        $defaults = [
+            'console' => ConsoleResponseStrategy::class,
+            'json' => JsonResponseStrategy::class,
+            'redirect' => RedirectResponseStrategy::class,
         ];
 
-        // Add data to response if provided
-        if ($data !== null) {
-            $response['data'] = $data;
+        $configured = array_filter((array) config('equidna.responses.strategies', []));
+
+        $class = $configured[$key] ?? $defaults[$key];
+
+        if (!is_string($class) || $class === '') {
+            throw new ConfigurationException("No response strategy configured for key: {$key}");
         }
 
-        // Add errors to response
-        if ($status >= 400) {
-            $response['errors'] = $errors;
-        }
-
-        return response()
-            ->json(
-                $response,
-                $status,
-                $headers,
+        if (!is_a($class, ResponseStrategyInterface::class, true)) {
+            throw new ConfigurationException(
+                sprintf('Response strategy %s must implement %s', $class, ResponseStrategyInterface::class),
             );
+        }
+
+        return app()->make($class);
+    }
+
+    private static function sanitizeMessage(int $status, string $message): string
+    {
+        $includeDebug = config('app.debug', false);
+
+        if ($status >= self::HTTP_INTERNAL_SERVER_ERROR && !$includeDebug) {
+            return 'An unexpected error occurred.';
+        }
+
+        return $message;
+    }
+
+    private static function sanitizeErrors(int $status, array $errors): array
+    {
+        $includeDebug = config('app.debug', false);
+
+        if ($status >= self::HTTP_INTERNAL_SERVER_ERROR && !$includeDebug) {
+            return [];
+        }
+
+        return $errors;
+    }
+
+    private static function sanitizeHeaders(array $headers, ResponseStrategyInterface $strategy): array
+    {
+        $sanitized = collect($headers)
+            ->filter(fn($value, $key) => is_string($key) && is_string($value))
+            ->all();
+
+        // Apply allow-list filtering if the strategy requires it
+        if ($strategy->requiresHeaderAllowList()) {
+            $allowed = array_map('strtolower', config('equidna.responses.allowed_headers', []));
+
+            $sanitized = collect($sanitized)
+                ->filter(function ($value, $key) use ($allowed) {
+                    if (empty($allowed)) {
+                        return false;
+                    }
+
+                    return in_array(strtolower((string) $key), $allowed, true);
+                })
+                ->all();
+        }
+
+        return $sanitized;
     }
 
     // SUCCESS RESPONSES
@@ -430,7 +464,6 @@ class ResponseHelper
         );
     }
 
-    /**
     /**
      * Returns a 500 Internal Server Error response for unexpected failures.
      *
