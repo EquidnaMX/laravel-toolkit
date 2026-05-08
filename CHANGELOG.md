@@ -4,6 +4,14 @@
 
 _No changes yet._
 
+## [1.0.5] - 2026-05-07
+
+### Fixed
+- `UnprocessableEntityException::render()` now returns a non-null `errors` array in its JSON response. When `$this->errors` is `null`, it defaults to an array containing the exception message, ensuring the `errors` field is always an array in API error responses.
+
+### Added
+- Unit tests and a `httpExceptionProvider` data provider covering multiple HTTP exception classes to assert that all of them return a properly structured JSON response with an `errors` array.
+
 ## [1.0.4] - 2025-12-05
 
 ### Fixed
