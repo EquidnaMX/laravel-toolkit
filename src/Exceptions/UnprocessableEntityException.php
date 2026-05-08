@@ -56,6 +56,11 @@ class UnprocessableEntityException extends Exception
      */
     public function render(): RedirectResponse|JsonResponse|string
     {
-        return ResponseHelper::unprocessableEntity(message: $this->message, errors: $this->errors);
+        $errors = $this->errors ?? [$this->message];
+
+        return ResponseHelper::unprocessableEntity(
+            message: $this->message,
+            errors: $errors
+        );
     }
 }
