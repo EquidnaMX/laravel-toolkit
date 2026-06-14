@@ -47,7 +47,15 @@ class RouteHelper
      */
     public static function isWeb(): bool
     {
-        return !(self::isApi() || self::isHook() || self::isIoT() || self::isConsole());
+        $request = self::getRequest();
+
+        if (is_null($request)) {
+            return false;
+        }
+
+        $detector = self::getDetector();
+
+        return !($detector->isApi($request) || $detector->isHook($request) || $detector->isIoT($request));
     }
 
     /**
@@ -57,10 +65,6 @@ class RouteHelper
      */
     public static function isApi(): bool
     {
-        if (self::isConsole()) {
-            return false;
-        }
-
         $request = self::getRequest();
 
         if (is_null($request)) {
@@ -77,10 +81,6 @@ class RouteHelper
      */
     public static function isHook(): bool
     {
-        if (self::isConsole()) {
-            return false;
-        }
-
         $request = self::getRequest();
 
         if (is_null($request)) {
@@ -97,10 +97,6 @@ class RouteHelper
      */
     public static function isIoT(): bool
     {
-        if (self::isConsole()) {
-            return false;
-        }
-
         $request = self::getRequest();
 
         if (is_null($request)) {
@@ -118,10 +114,6 @@ class RouteHelper
      */
     public static function isExpression(string $expression): bool
     {
-        if (self::isConsole()) {
-            return false;
-        }
-
         return self::getRequest()?->is($expression) ?? false;
     }
 
@@ -132,10 +124,6 @@ class RouteHelper
      */
     public static function wantsJson(): bool
     {
-        if (self::isConsole()) {
-            return false;
-        }
-
         $request = self::getRequest();
 
         if (is_null($request)) {
@@ -152,10 +140,6 @@ class RouteHelper
      */
     public static function getMethod(): ?string
     {
-        if (self::isConsole()) {
-            return null;
-        }
-
         return self::getRequest()?->method();
     }
 
@@ -167,10 +151,6 @@ class RouteHelper
      */
     public static function isMethod(string $method): bool
     {
-        if (self::isConsole()) {
-            return false;
-        }
-
         return self::getRequest()?->isMethod($method) ?? false;
     }
 
@@ -181,10 +161,6 @@ class RouteHelper
      */
     public static function getRouteName(): ?string
     {
-        if (self::isConsole()) {
-            return null;
-        }
-
         $route = self::getRequest()?->route();
 
         return $route ? $route->getName() : null;
@@ -209,10 +185,6 @@ class RouteHelper
      */
     public static function routeContains(string $name): bool
     {
-        if (self::isConsole()) {
-            return false;
-        }
-
         return Str::contains(self::getRouteName() ?: '', $name);
     }
 
