@@ -1,6 +1,6 @@
 # Equidna Laravel Toolkit
 
-A Laravel 11/12 package that unifies response patterns, pagination utilities, and route detection across web, API, hook, IoT, and console entry points. The toolkit ships helpers, middleware, traits, and a service provider so host applications can enforce consistent behavior without rewriting boilerplate.
+A Laravel 12/13 package that unifies response patterns, pagination utilities, and route detection across web, API, hook, IoT, and console entry points. The toolkit ships helpers, middleware, traits, and a service provider so host applications can enforce consistent behavior without rewriting boilerplate.
 
 ![CI status](https://github.com/EquidnaMX/laravel-toolkit/actions/workflows/ci.yml/badge.svg)
 
@@ -15,8 +15,8 @@ A Laravel 11/12 package that unifies response patterns, pagination utilities, an
 
 ## Compatibility
 
-- **PHP:** 8.2 or 8.3 (validated in CI)
-- **Laravel:** 11.x or 12.x
+- **PHP:** 8.2, 8.3, 8.4, or 8.5 (validated in CI)
+- **Laravel:** 12.x or 13.x
 - **Composer:** 2.5+ recommended (for `composer audit`)
 
 ## Installation
@@ -188,7 +188,7 @@ Running PHPStan against the library can surface `trait.unused` warnings for `Tra
 
 ## Enterprise readiness checklist
 
-- **Compatibility matrix:** PHP 8.2/8.3, Laravel 11/12. Defaults work without custom strategies; failures raise `ConfigurationException`.
+- **Compatibility matrix:** PHP 8.2/8.3/8.4/8.5, Laravel 12/13. Defaults work without custom strategies; failures raise `ConfigurationException`.
 - **Quality gates (run before release):** `composer install`, `vendor/bin/phpunit`, `vendor/bin/phpstan analyse -c phpstan.neon --memory-limit=512M`, `vendor/bin/phpcs --standard=ruleset.xml`, `composer audit --locked` (add `--no-dev` for production builds).
 - **Configuration safety:** Toolkit ships default pagination/response strategies; boot-time validation prevents misconfiguration. `paginator.page_items` must be a positive integer.
 - **Security posture:** No remote calls or telemetry; header allow-list enforced for JSON/redirect contexts. Use GitHub issues for security contact until a SECURITY.md is published.

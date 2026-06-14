@@ -55,7 +55,7 @@ _No changes yet._
 ### Versioning policy
 
 - Follows Semantic Versioning: MAJOR for breaking changes, MINOR for new functionality (backwards compatible), PATCH for fixes and documentation-only releases.
-- Target PHP 8.2+ and Laravel 11/12; raise the major version if compatibility requirements change.
+- Target PHP 8.2+ and Laravel 12/13; raise the major version if compatibility requirements change.
 - Each release must align `composer.json`'s `version` field, tags, and changelog entry.
 
 ### Release checklist
