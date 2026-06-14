@@ -7,9 +7,9 @@ return [
         'strategy' => null,
     ],
     'route' => [
-        'api_matchers' => ['api*', '*-api*'],
-        'hook_matchers' => ['hooks/*'],
-        'iot_matchers' => ['iot/*'],
+        'api_matchers' => ['api', 'api/*', '*-api', '*-api/*'],
+        'hook_matchers' => ['hooks', 'hooks/*'],
+        'iot_matchers' => ['iot', 'iot/*'],
         'json_matchers' => [],
         // Leave null to use the toolkit defaults or bind interfaces to override.
         'detector' => null,

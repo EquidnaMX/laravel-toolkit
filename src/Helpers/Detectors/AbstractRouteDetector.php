@@ -23,12 +23,9 @@ abstract class AbstractRouteDetector implements RouteDetectorInterface
         return $this->matches($request, 'json_matchers') || $request->expectsJson();
     }
 
-    /**
-     * @param array<int, string> $default
-     */
-    protected function patterns(string $key, array $default = []): array
+    protected function patterns(string $key): array
     {
-        return $this->matchers[$key] ?? $default;
+        return $this->matchers[$key] ?? [];
     }
 
     protected function matches(Request $request, string $key): bool
