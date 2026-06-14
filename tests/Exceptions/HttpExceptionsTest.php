@@ -17,6 +17,7 @@ use Equidna\Toolkit\Tests\Support\FakeRouteDetector;
 use Equidna\Toolkit\Tests\TestCase;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class HttpExceptionsTest extends TestCase
 {
@@ -62,6 +63,7 @@ class HttpExceptionsTest extends TestCase
     /**
      * @dataProvider httpExceptionProvider
      */
+    #[DataProvider('httpExceptionProvider')]
     public function test_render_never_returns_null_errors_for_http_exceptions(
         string $exceptionClass,
         int $expectedStatus,

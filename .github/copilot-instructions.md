@@ -106,7 +106,7 @@ class UserRole extends Model {
 
 ## Integration Points
 
-- **Laravel Framework**: Requires illuminate/support ^11.21|^12.0 as dev dependency
+- **Laravel Framework**: Requires illuminate/support ^12.0|^13.0 as dev dependency
 - **Auto-Discovery**: Package auto-registers via composer.json `extra.laravel.providers`
 - **Config Publishing**: Uses Laravel's standard `vendor:publish` command
 - **Exception Handling**: Integrates with Laravel's exception handling pipeline

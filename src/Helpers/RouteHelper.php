@@ -22,10 +22,6 @@ use Illuminate\Support\Str;
  */
 class RouteHelper
 {
-    private static ?RouteDetectorInterface $detector = null;
-
-    private static ?RequestResolverInterface $requestResolver = null;
-
     /**
      * Determines whether the application executes within the console.
      *
@@ -200,15 +196,11 @@ class RouteHelper
 
     private static function getDetector(): RouteDetectorInterface
     {
-        self::$detector ??= app()->make(RouteDetectorInterface::class);
-
-        return self::$detector;
+        return app()->make(RouteDetectorInterface::class);
     }
 
     private static function getRequestResolver(): RequestResolverInterface
     {
-        self::$requestResolver ??= app()->make(RequestResolverInterface::class);
-
-        return self::$requestResolver;
+        return app()->make(RequestResolverInterface::class);
     }
 }

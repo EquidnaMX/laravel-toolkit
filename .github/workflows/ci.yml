@@ -8,8 +8,13 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        php-version: ['8.2', '8.3']
+        php-version: ['8.2', '8.3', '8.4', '8.5']
+        laravel-version: ['12.*', '13.*']
+        exclude:
+          - php-version: '8.2'
+            laravel-version: '13.*'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -21,8 +26,13 @@ jobs:
           tools: composer
           extensions: mbstring, dom, json
 
+      - name: Configure Laravel version
+        run: |
+          rm -f composer.lock
+          composer require "laravel/framework:${{ matrix.laravel-version }}" "illuminate/support:${{ matrix.laravel-version }}" --no-interaction --no-update
+
       - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist --no-progress
+        run: composer update --with-all-dependencies --no-interaction --prefer-dist --no-progress
 
       - name: Run PHPUnit
         run: vendor/bin/phpunit

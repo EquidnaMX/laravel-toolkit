@@ -4,6 +4,23 @@
 
 _No changes yet._
 
+## [2.0.0] - 2026-06-13
+
+### Removed
+
+- Dropped Laravel 11 support. The package now targets Laravel 12/13 only.
+
+### Changed
+
+- Updated `composer.json` constraints for `laravel/framework` and `illuminate/support` to `^12.0 || ^13.0`.
+- Updated CI and maintainer guidance to target PHP 8.2-8.5 and Laravel 12/13.
+- Refreshed package metadata and compatibility notes to reflect the new support baseline.
+
+### Fixed
+
+- `RouteHelper` now resolves the detector and request resolver from the current container on each call, avoiding stale cached bindings when the application container changes during tests or runtime.
+- Expanded route-helper coverage for container swapping and Laravel 13 compatibility.
+
 ## [1.0.6] - 2026-06-13
 
 ### Fixed
@@ -55,7 +72,7 @@ _No changes yet._
 ### Versioning policy
 
 - Follows Semantic Versioning: MAJOR for breaking changes, MINOR for new functionality (backwards compatible), PATCH for fixes and documentation-only releases.
-- Target PHP 8.2+ and Laravel 11/12; raise the major version if compatibility requirements change.
+- Target PHP 8.2+ and Laravel 12/13; raise the major version if compatibility requirements change.
 - Each release must align `composer.json`'s `version` field, tags, and changelog entry.
 
 ### Release checklist

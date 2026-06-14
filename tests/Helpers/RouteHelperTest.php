@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Equidna\Toolkit\Tests\Helpers;
 
+use Equidna\Toolkit\Contracts\RequestResolverInterface;
 use Equidna\Toolkit\Contracts\RouteDetectorInterface;
 use Equidna\Toolkit\Helpers\RouteHelper;
+use Equidna\Toolkit\Helpers\Request\LaravelRequestResolver;
 use Equidna\Toolkit\Tests\Support\FakeApplication;
 use Equidna\Toolkit\Tests\Support\FakeRouteDetector;
 use Equidna\Toolkit\Tests\TestCase;
+use Illuminate\Container\Container;
 use Illuminate\Http\Request;
 
 class RouteHelperTest extends TestCase
@@ -39,6 +42,31 @@ class RouteHelperTest extends TestCase
         $this->assertTrue(RouteHelper::isApi());
         $this->assertTrue(RouteHelper::wantsJson());
         $this->assertSame('PUT', RouteHelper::getMethod());
+    }
+
+    public function test_resolves_detector_and_request_resolver_from_current_container(): void
+    {
+        $this->app->setRunningInConsole(false);
+        $this->app->instance('request', Request::create('/api/products', 'PUT'));
+        $this->app->singleton(RouteDetectorInterface::class, fn() => new FakeRouteDetector(api: true, wantsJson: true));
+
+        $this->assertTrue(RouteHelper::isApi());
+        $this->assertTrue(RouteHelper::wantsJson());
+
+        $nextApp = new FakeApplication();
+        $nextApp->setRunningInConsole(false);
+        $nextApp->instance('request', Request::create('/web/products', 'GET'));
+        $nextApp->singleton(RouteDetectorInterface::class, fn() => new FakeRouteDetector());
+        $nextApp->singleton(
+            RequestResolverInterface::class,
+            fn($app) => new LaravelRequestResolver($app),
+        );
+
+        Container::setInstance($nextApp);
+
+        $this->assertFalse(RouteHelper::isApi());
+        $this->assertFalse(RouteHelper::wantsJson());
+        $this->assertSame('GET', RouteHelper::getMethod());
     }
 
     public function test_detects_hook_and_iot_routes(): void
