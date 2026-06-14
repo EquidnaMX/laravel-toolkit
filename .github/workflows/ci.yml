@@ -8,6 +8,7 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         php-version: ['8.2', '8.3', '8.4', '8.5']
         laravel-version: ['11.*', '12.*', '13.*']
@@ -26,7 +27,9 @@ jobs:
           extensions: mbstring, dom, json
 
       - name: Configure Laravel version
-        run: composer require "laravel/framework:${{ matrix.laravel-version }}" "illuminate/support:${{ matrix.laravel-version }}" --no-interaction --no-update
+        run: |
+          rm -f composer.lock
+          composer require "laravel/framework:${{ matrix.laravel-version }}" "illuminate/support:${{ matrix.laravel-version }}" --no-interaction --no-update
 
       - name: Install dependencies
         run: composer update --with-all-dependencies --no-interaction --prefer-dist --no-progress
