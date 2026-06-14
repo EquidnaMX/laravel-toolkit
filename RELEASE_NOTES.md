@@ -1,39 +1,32 @@
-# Release v1.0.6 "Meridian"
+# Release v2.0.0 "Horizon"
 
 Released: 2026-06-13
 
 ## Summary
 
-**Meridian** is a precision patch that corrects route detection behavior in console contexts and tightens the default URL matcher patterns to eliminate false positives. Route helper methods previously short-circuited to `false`/`null` whenever `isConsole()` returned `true`, preventing console commands from using a bound request for route context. Matcher patterns for `api`, `hooks`, and `iot` were also too broad, allowing unrelated paths (e.g. `/apiary`) to match.
+**Horizon** marks the package's compatibility reset to Laravel 12/13. It drops Laravel 11 support, updates the package and CI constraints to the new baseline, and keeps route resolution stable when the application container is swapped during tests or runtime.
 
 ## Highlights
 
-- **Console-aware route detection** — Route helper methods no longer force `false` in console context; they now delegate to the request resolver, enabling console commands with a bound request to receive accurate results.
-- **Precise default matchers** — `api_matchers`, `hook_matchers`, and `iot_matchers` updated to exact-prefix patterns, eliminating false positives from overlapping route names.
-- **Root-path matching** — `/hooks` and `/iot` root paths are now matched in addition to their sub-paths.
-- **Expanded test coverage** — New `RouteHelperTest` cases cover console-bound requests, root-path assertions, and prefix false-positive regressions.
+- **Laravel 12/13 baseline** — The package now targets Laravel 12.x and 13.x only.
+- **Container-safe route resolution** — `RouteHelper` now resolves its detector and request resolver from the current container on each call instead of reusing cached instances.
+- **Updated release matrix** — Composer, CI, and maintainer guidance now align on PHP 8.2-8.5 and Laravel 12/13.
+- **Expanded coverage** — Route-helper tests cover container swapping and Laravel 13 compatibility.
+
+## Removed
+
+- Laravel 11 support.
 
 ## Fixed
 
-- `RouteHelper` methods (`isApi`, `isHook`, `isIoT`, `isWeb`, `wantsJson`, `isExpression`, `getMethod`, `isMethod`, `getRouteName`, `routeContains`) no longer return early with a console-fallback value when `isConsole()` is `true`. Console commands with a request object bound to the container now receive correct route-context values.
-- `AbstractRouteDetector::patterns()` now always returns an empty array when a key is missing, removing an inconsistency caused by the removed optional `$default` parameter.
+- `RouteHelper` now resolves `RouteDetectorInterface` and `RequestResolverInterface` from the active container for each call, preventing stale bindings in tests and long-lived runtime contexts.
+- Route-helper tests now verify container switching and the Laravel 13 compatibility path.
 
 ## Changed
 
-- `equidna.php` → `route.api_matchers` default changed from `['api*', '*-api*']` to `['api', 'api/*', '*-api', '*-api/*']`. Prevents paths like `/apiary` or `/rapid-api-gateway` from being incorrectly classified as API routes.
-- `equidna.php` → `route.hook_matchers` default changed from `['hooks/*']` to `['hooks', 'hooks/*']` to also match the bare `/hooks` path.
-- `equidna.php` → `route.iot_matchers` default changed from `['iot/*']` to `['iot', 'iot/*']` to also match the bare `/iot` path.
-
-## Added
-
-- `RouteHelperTest`: new test cases for console-bound requests, root-path matchers (`/api`, `/hooks`, `/iot`), and prefix false-positive regressions.
-
-## No Breaking Changes
-
-This is a fully backward-compatible patch. No public API signatures changed.
-
-> **Note for upgraders:** If you have published `equidna.php` to your application's `config/` directory, the new default matcher patterns are **not** applied automatically. Review and update your `api_matchers`, `hook_matchers`, and `iot_matchers` entries to benefit from the improved patterns.
-
----
+- `composer.json` now requires `laravel/framework` and `illuminate/support` at `^12.0 || ^13.0`.
+- CI now validates PHP 8.2-8.5 against Laravel 12/13 instead of the previous Laravel 11/12/13 matrix.
+- README compatibility notes and maintainer guidance now describe the Laravel 12/13 baseline.
 
 For the full project history see [CHANGELOG.md](CHANGELOG.md).
+For migration details see [BREAKING_CHANGES.md](BREAKING_CHANGES.md).
