@@ -17,7 +17,6 @@ use Equidna\Toolkit\Tests\Support\FakeUrlGenerator;
 use Illuminate\Config\Repository as ConfigRepository;
 use Illuminate\Container\Container;
 use PHPUnit\Framework\TestCase as BaseTestCase;
-use ReflectionClass;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -60,7 +59,6 @@ abstract class TestCase extends BaseTestCase
 
     protected function tearDown(): void
     {
-        $this->resetRouteHelperState();
         Container::setInstance(null);
 
         parent::tearDown();
@@ -76,16 +74,5 @@ abstract class TestCase extends BaseTestCase
         $this->app->alias('redirect', 'Illuminate\\Routing\\Redirector');
         $this->app->instance('Illuminate\\Contracts\\Routing\\ResponseFactory', new FakeResponseFactory());
         $this->app->alias('Illuminate\\Contracts\\Routing\\ResponseFactory', 'response');
-    }
-
-    protected function resetRouteHelperState(): void
-    {
-        $reflection = new ReflectionClass('Equidna\\Toolkit\\Helpers\\RouteHelper');
-
-        foreach (['detector', 'requestResolver'] as $property) {
-            $prop = $reflection->getProperty($property);
-            $prop->setAccessible(true);
-            $prop->setValue(null, null);
-        }
     }
 }

@@ -29,6 +29,11 @@ class FakeResponseFactory implements ResponseFactory
         return new JsonResponse(['callback' => $callback, 'data' => $data], $status, $headers, $options);
     }
 
+    public function eventStream($callback, array $headers = [], $endStreamWith = '</stream>')
+    {
+        return $this->json(['event_stream' => true], 200, $headers);
+    }
+
     public function view($view = null, $data = [], $status = 200, array $headers = [])
     {
         return new JsonResponse(['view' => $view, 'data' => $data], $status, $headers);

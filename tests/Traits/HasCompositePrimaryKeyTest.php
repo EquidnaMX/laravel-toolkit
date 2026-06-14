@@ -17,6 +17,10 @@ class HasCompositePrimaryKeyTest extends TestCase
 
             public array $original = [];
 
+            public int $first;
+
+            public int $second;
+
             public function getKeyName(): array
             {
                 return ['first', 'second'];
@@ -40,17 +44,26 @@ class HasCompositePrimaryKeyTest extends TestCase
             ->onlyMethods(['where'])
             ->getMock();
 
+        $whereCalls = [];
+
         $builder->expects($this->exactly(2))
             ->method('where')
-            ->withConsecutive(
-                ['first', '=', 10],
-                ['second', '=', 20],
-            )
-            ->willReturnSelf();
+            ->willReturnCallback(function (...$arguments) use (&$whereCalls, $builder) {
+                $whereCalls[] = $arguments;
+
+                return $builder;
+            });
 
         $result = $model->callSetKeysForSaveQuery($builder);
 
         $this->assertSame($builder, $result);
+        $this->assertSame(
+            [
+                ['first', '=', 10, 'and'],
+                ['second', '=', 20, 'and'],
+            ],
+            $whereCalls,
+        );
     }
 
     public function test_set_keys_for_save_query_falls_back_to_attributes(): void
@@ -59,6 +72,10 @@ class HasCompositePrimaryKeyTest extends TestCase
             use HasCompositePrimaryKey;
 
             public array $original = [];
+
+            public int $first;
+
+            public int $second;
 
             public function getKeyName(): array
             {
@@ -84,16 +101,25 @@ class HasCompositePrimaryKeyTest extends TestCase
             ->onlyMethods(['where'])
             ->getMock();
 
+        $whereCalls = [];
+
         $builder->expects($this->exactly(2))
             ->method('where')
-            ->withConsecutive(
-                ['first', '=', 5],
-                ['second', '=', 6],
-            )
-            ->willReturnSelf();
+            ->willReturnCallback(function (...$arguments) use (&$whereCalls, $builder) {
+                $whereCalls[] = $arguments;
+
+                return $builder;
+            });
 
         $result = $model->callSetKeysForSaveQuery($builder);
 
         $this->assertSame($builder, $result);
+        $this->assertSame(
+            [
+                ['first', '=', 5, 'and'],
+                ['second', '=', 6, 'and'],
+            ],
+            $whereCalls,
+        );
     }
 }
