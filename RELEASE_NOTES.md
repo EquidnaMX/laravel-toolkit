@@ -1,5 +1,3 @@
-# Release v1.0.5 "Sentinel"
-
 # Release v1.0.6 "Meridian"
 
 Released: 2026-06-13
