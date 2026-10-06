@@ -2,7 +2,10 @@
 
 ## [Unreleased]
 
-_No changes yet._
+### Changed
+
+- Derive Composer package versions from Git tags instead of a hardcoded `composer.json` version to prevent mismatches in future releases.
+- Validate package metadata strictly in CI before resolving the Laravel compatibility matrix.
 
 ## [2.0.1] - 2026-10-06
 

@@ -175,7 +175,7 @@ HTTP-friendly exceptions (`src/Exceptions/*`) are container-bound by the service
 ### Release hygiene
 
 - Keep `CHANGELOG.md` updated for every user-facing change and reset the `Unreleased` section when tagging.
-- Align the package version in `composer.json` with the release tag and changelog entry.
+- Derive the package version from the Git release tag; do not add a `version` field to `composer.json`. Keep the tag and changelog entry aligned.
 - Run audits, linters, static analysis, and tests (above) before publishing.
 
 ### PHPStan note
@@ -192,7 +192,7 @@ Running PHPStan against the library can surface `trait.unused` warnings for `Tra
 - **Quality gates (run before release):** `composer install`, `vendor/bin/phpunit`, `vendor/bin/phpstan analyse -c phpstan.neon --memory-limit=512M`, `vendor/bin/phpcs --standard=ruleset.xml`, `composer audit --locked` (add `--no-dev` for production builds).
 - **Configuration safety:** Toolkit ships default pagination/response strategies; boot-time validation prevents misconfiguration. `paginator.page_items` must be a positive integer.
 - **Security posture:** No remote calls or telemetry; header allow-list enforced for JSON/redirect contexts. Use GitHub issues for security contact until a SECURITY.md is published.
-- **Release discipline:** Semantic Versioning; align `composer.json` version, tag, and `CHANGELOG.md` entry. Run quality gates and audits before tagging.
+- **Release discipline:** Semantic Versioning; align the Git release tag and `CHANGELOG.md` entry. Composer derives the version from the tag. Run quality gates and audits before tagging; preserve published tags.
 
 ## License & compliance
 
