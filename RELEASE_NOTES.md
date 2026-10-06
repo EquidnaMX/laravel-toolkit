@@ -1,32 +1,26 @@
-# Release v2.0.0 "Horizon"
+# Release v2.0.1
 
-Released: 2026-06-13
+Released: 2026-10-06
 
-## Summary
+## Security
 
-**Horizon** marks the package's compatibility reset to Laravel 12/13. It drops Laravel 11 support, updates the package and CI constraints to the new baseline, and keeps route resolution stable when the application container is swapped during tests or runtime.
+This patch excludes published vulnerable dependency versions during Composer resolution and refreshes the development lockfile to patched releases. Consumers receive these restrictions when updating the package.
 
-## Highlights
+- Guzzle 7.15.5 and promises 2.5.3
+- PSR-7 2.13.1
+- Laravel 13.35.0
+- CommonMark 2.10.3
+- Flysystem 3.36.0
+- PHP_CodeSniffer 4.0.4
 
-- **Laravel 12/13 baseline** — The package now targets Laravel 12.x and 13.x only.
-- **Container-safe route resolution** — `RouteHelper` now resolves its detector and request resolver from the current container on each call instead of reusing cached instances.
-- **Updated release matrix** — Composer, CI, and maintainer guidance now align on PHP 8.2-8.5 and Laravel 12/13.
-- **Expanded coverage** — Route-helper tests cover container swapping and Laravel 13 compatibility.
+All locked dependency upgrades retain their existing major versions. Laravel 12 and 13 remain supported; consumers must use Laravel 12.69.0 or later, or Laravel 13.30.0 or later. PHP support remains 8.2–8.5.
 
-## Removed
+## Validation
 
-- Laravel 11 support.
+- Local PHPUnit: 35 tests, 143 assertions, with PHPStan, PHPCS, and Composer audit passing.
+- CI passed all seven supported PHP 8.2–8.5 / Laravel 12–13 combinations, including tests, static analysis, coding standards, and dependency audits.
+- Independent review found no blocking defects.
 
-## Fixed
+Existing PHP 8.5 test deprecation and Composer version-field recommendation remain. These changes do not establish whether deployed consuming applications are exposed to the upstream advisories.
 
-- `RouteHelper` now resolves `RouteDetectorInterface` and `RequestResolverInterface` from the active container for each call, preventing stale bindings in tests and long-lived runtime contexts.
-- Route-helper tests now verify container switching and the Laravel 13 compatibility path.
-
-## Changed
-
-- `composer.json` now requires `laravel/framework` and `illuminate/support` at `^12.0 || ^13.0`.
-- CI now validates PHP 8.2-8.5 against Laravel 12/13 instead of the previous Laravel 11/12/13 matrix.
-- README compatibility notes and maintainer guidance now describe the Laravel 12/13 baseline.
-
-For the full project history see [CHANGELOG.md](CHANGELOG.md).
-For migration details see [BREAKING_CHANGES.md](BREAKING_CHANGES.md).
+See [PR #30](https://github.com/EquidnaMX/laravel-toolkit/pull/30) and [CHANGELOG.md](CHANGELOG.md).

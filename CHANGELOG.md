@@ -4,6 +4,17 @@
 
 _No changes yet._
 
+## [2.0.1] - 2026-10-06
+
+### Security
+
+- Exclude vulnerable versions of Guzzle, PSR-7, Laravel, CommonMark, Flysystem, and PHP_CodeSniffer when resolving dependencies.
+- Refresh the lockfile to patched releases while preserving dependency major versions and Laravel 12/13 support.
+
+### Changed
+
+- Laravel consumers now require patched releases: Laravel 12.69.0 or later, or Laravel 13.30.0 or later.
+
 ## [2.0.0] - 2026-06-13
 
 ### Removed
