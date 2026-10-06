@@ -26,6 +26,9 @@ jobs:
           tools: composer
           extensions: mbstring, dom, json
 
+      - name: Validate package metadata
+        run: composer validate --strict
+
       - name: Configure Laravel version
         run: |
           rm -f composer.lock
